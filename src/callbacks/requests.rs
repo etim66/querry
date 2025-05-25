@@ -148,6 +148,19 @@ pub async fn process_update_request(
                 *item_ref = request_data;
             }
             cfg.set_active_collection_requests(Rc::new(VecModel::from(items)).into());
+
+            // Update item in selected requests.
+            let mut selected_requests: Vec<SelectedRequestItem> =
+                cfg.get_selected_requests().iter().collect();
+
+            for item in selected_requests.iter_mut() {
+                if item.item.id == request_id {
+                    item.item.name = name;
+                    break;
+                }
+            }
+
+            cfg.set_selected_requests(Rc::new(VecModel::from(selected_requests)).into());
         });
     });
 
