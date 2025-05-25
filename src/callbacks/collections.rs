@@ -199,6 +199,7 @@ pub async fn process_update_collection(
                     return;
                 }
             };
+
             let collection_item = CollectionItem {
                 id: new_collection.id.into(),
                 name: new_collection.name.into(),
@@ -219,8 +220,7 @@ pub async fn process_update_collection(
 
             for item in selected_requests.iter_mut() {
                 if item.collection_id == id {
-                    item.collection_icon = icon_item;
-                    break;
+                    item.collection_icon = icon_item.clone();
                 }
             }
             cfg.set_selected_requests(Rc::new(VecModel::from(selected_requests)).into());
@@ -258,6 +258,13 @@ pub async fn process_remove_collection(
                 items.remove(index as usize);
             }
             cfg.set_collection_items(Rc::new(VecModel::from(items)).into());
+
+            // Remove selected requests.
+            let mut selected_requests: Vec<SelectedRequestItem> =
+                cfg.get_selected_requests().iter().collect();
+
+            selected_requests.retain(|item| item.collection_id != id);
+            cfg.set_selected_requests(Rc::new(VecModel::from(selected_requests)).into());
         });
     });
     Ok(())
