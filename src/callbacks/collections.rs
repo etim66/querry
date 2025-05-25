@@ -9,7 +9,7 @@ use crate::{
         create_collection, delete_collection, get_all_collections, search_collections,
         update_collection_item, CollectionData,
     },
-    AppConfig, AppWindow, CollectionItem,
+    AppConfig, AppWindow, CollectionItem, SelectedRequestItem,
 };
 
 /// Set page to view on app start.
@@ -202,7 +202,7 @@ pub async fn process_update_collection(
             let collection_item = CollectionItem {
                 id: new_collection.id.into(),
                 name: new_collection.name.into(),
-                icon: icon_item,
+                icon: icon_item.clone(),
                 icon_name: new_collection.icon.into(),
                 request_count: new_collection.requests_count,
             };
@@ -212,6 +212,18 @@ pub async fn process_update_collection(
                 *item_ref = collection_item;
             }
             cfg.set_collection_items(Rc::new(VecModel::from(items)).into());
+
+            // Update the icon on selected requests linked to this collection.
+            let mut selected_requests: Vec<SelectedRequestItem> =
+                cfg.get_selected_requests().iter().collect();
+
+            for item in selected_requests.iter_mut() {
+                if item.collection_id == id {
+                    item.collection_icon = icon_item;
+                    break;
+                }
+            }
+            cfg.set_selected_requests(Rc::new(VecModel::from(selected_requests)).into());
         });
     });
     Ok(())
