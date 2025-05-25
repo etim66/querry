@@ -185,13 +185,21 @@ pub async fn process_delete_request(
             }
             cfg.set_active_collection_requests(Rc::new(VecModel::from(items)).into());
 
-            // Get collection and increase request count.
+            // Get collection and decrease request count.
             let mut collections: Vec<CollectionItem> = cfg.get_collection_items().iter().collect();
 
             if let Some(item_ref) = collections.get_mut(collection_index as usize) {
                 item_ref.request_count -= 1;
             }
             cfg.set_collection_items(Rc::new(VecModel::from(collections)).into());
+
+            // Remove selected requests linked to this request item.
+            let mut selected_requests: Vec<SelectedRequestItem> =
+                cfg.get_selected_requests().iter().collect();
+
+            selected_requests.retain(|item| item.item.id != request_id);
+
+            cfg.set_selected_requests(Rc::new(VecModel::from(selected_requests)).into());
         });
     });
 
@@ -240,6 +248,7 @@ pub async fn process_request_selection(app: &AppWindow) -> Result<(), Box<dyn Er
             selected_requests.push(SelectedRequestItem {
                 item: selected_request.clone(),
                 collection_icon: active_collection.icon.clone(),
+                collection_id: active_collection.id.clone(),
             });
             cfg.set_selected_requests(Rc::new(VecModel::from(selected_requests)).into());
         }

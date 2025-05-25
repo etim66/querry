@@ -6,3 +6,6 @@ format:
 
 lint:
 	cargo clippy --verbose -- -D warnings
+
+build:
+	cargo run --release
