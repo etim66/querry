@@ -117,8 +117,9 @@ export component RequestComponent inherits Rectangle {
                     property<length> position_y;
     
                     clicked => {
+                        
                         position_x = root.x + root.width + 50px;
-                        position_y = AppConfig.active_collection_item.y + ((index * root.height) + AppConfig.requests_viewport_y) + 30px;
+                        position_y = root.absolute-position.y + AppConfig.requests_viewport_y;
                         AppConfig.active_request_item = {
                             id: id,
                             name: name,

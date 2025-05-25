@@ -14,14 +14,16 @@ export component CollectionComponent inherits Rectangle {
     in property <int> index;
     in property <string> icon_name;
     in-out property <int> request_count;
+    property<length> position_x;
+    property<length> position_y;
+    callback request-focus-parent();
+
     height: (AppConfig.show_active_collection_requests == true && AppConfig.active_collection_item.id == id && AppConfig.active_collection_requests.length > 0) ? 350px : 50px;
 
     touch-area := TouchArea {
-        property<length> position_x;
-        property<length> position_y;
         clicked => {
             position_x = root.x + root.width;
-            position_y = (index * root.height) + AppConfig.collections_viewport_y;
+            position_y = root.absolute-position.y + AppConfig.collections_viewport_y;
             AppConfig.active_collection_item = {
                 id: id,
                 name: name,
@@ -39,8 +41,10 @@ export component CollectionComponent inherits Rectangle {
             } else {
                 AppConfig.active_collection_requests = [];
             }
+            root.request-focus-parent();
         }
     }
+
 
     background: touch-area.has-hover ? component_background.darker(20%) : AppConfig.active_collection_item.id == id ? component_background.darker(20%) : component_background;
     border-width: Theme.hover_border_width;
@@ -171,7 +175,7 @@ export component CollectionComponent inherits Rectangle {
                             }
                             else {
                                 position_x = root.x + root.width;
-                                position_y = (index * root.height) + AppConfig.collections_viewport_y;
+                                position_y = root.absolute-position.y + AppConfig.collections_viewport_y;
 
                                 AppConfig.active_collection_item = {
                                     id: id,

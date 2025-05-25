@@ -8,15 +8,6 @@ import { CollectionComponent } from "./collection_item.slint";
 import { BaseButton } from "./buttons.slint";
 
 
-component CreateCollectionsButton inherits BaseButton {
-    Text {
-        text: "Add";
-        font-size: Theme.label_font_size_medium_small;
-        color: Theme.label_text_color;
-    }
-}
-
-
 export component CollectionSection inherits Rectangle {
     border-color: Theme.border_color;
     vertical-stretch: 1;
@@ -33,6 +24,41 @@ export component CollectionSection inherits Rectangle {
             x:-1px,
             y:-1px
         };
+    }
+
+    TouchArea {
+        clicked => {
+            root.focus()
+        }
+    }
+
+    forward-focus: my-key-handler;
+    my-key-handler := FocusScope {
+        key-pressed(event) => {
+
+            if (event.text == Key.UpArrow) {
+                scroll.viewport-y += 30px;
+                checkScrollEdges()
+            }
+            if (event.text == Key.DownArrow) {
+                scroll.viewport-y -= 30px;
+                checkScrollEdges()
+            } 
+            accept
+        }
+    }
+
+    property <length> min_scroll_y;
+    function checkScrollEdges() {
+        min_scroll_y = scroll.visible-height - scroll.viewport-height;
+    
+        if (scroll.viewport-y >= 0) {
+            scroll.viewport-y = 0px;
+        }
+
+        if (scroll.viewport-y <= min_scroll_y) {
+            scroll.viewport-y = min_scroll_y;
+        }
     }
 
     VerticalLayout { 
@@ -66,65 +92,30 @@ export component CollectionSection inherits Rectangle {
             }
         }
 
-        
-        if collection_items.length > 0:
-
-            VerticalLayout {
-                vertical-stretch: 1;
-                ListView {
-                    vertical-scrollbar-policy: (AppConfig.show_active_collection_requests == true && AppConfig.active_collection_requests.length > 0) ? always-off : as-needed;
-                    for list_item[i] in collection_items: CollectionComponent {
-                        name: list_item.name;
-                        id: list_item.id;
-                        component_background: root.background;
-                        icon: list_item.icon;
-                        index: i;
-                        icon_name: list_item.icon_name;
-                        request_count: list_item.request_count;
+        VerticalLayout {
+            vertical-stretch: 1;
+            scroll := ListView {
+                vertical-scrollbar-policy: (AppConfig.show_active_collection_requests == true && AppConfig.active_collection_requests.length > 0) ? always-off : as-needed;
+                for list_item[i] in collection_items: CollectionComponent {
+                    name: list_item.name;
+                    id: list_item.id;
+                    component_background: root.background;
+                    icon: list_item.icon;
+                    index: i;
+                    icon_name: list_item.icon_name;
+                    request_count: list_item.request_count;
+                    request-focus-parent => {
+                        root.focus();
                     }
+                }
 
-                    changed viewport-y => {
-                        AppConfig.collections_viewport_y = self.viewport-y;
-                    }
-
+                changed viewport-y => {
+                    AppConfig.collections_viewport_y = self.viewport-y;
                 }
 
             }
-            
-        if collection_items.length == 0:
 
-            VerticalLayout {
-                vertical-stretch: 1;
-                alignment: center;
-                spacing: 20px;
-                width: 100%;
-
-                Image {
-                    source: @image-url("../icons/empty.svg");
-                    // opacity: 0.7;         
-                    x: (parent.width - self.width) / 2;
-                    width: 300px;
-                }
-                Text {
-                    padding-top: 10px;
-                    text: "No collections found.";
-                    font-size: Theme.label_font_size_medium_small;
-                    color: Theme.label_text_color;
-                    horizontal-alignment: center;
-                    opacity: Theme.text_opacity;
-                }
-
-                CreateCollectionsButton {
-                    x: (parent.width - self.width) / 2;
-
-                    TouchArea {
-                        mouse-cursor: self.has-hover ? pointer : default;
-                        clicked => {
-                            AppConfig.create_collection();
-                        }
-                    }
-                }
-            }
+        }
 
         SearchForm {
             height: 30px;
