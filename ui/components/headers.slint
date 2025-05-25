@@ -94,11 +94,11 @@ export component HeadersSection inherits Rectangle {
         key-pressed(event) => {
 
             if (event.text == Key.LeftArrow) {
-                scroll.viewport-x -= 30px;
+                scroll.viewport-x += 30px;
                 checkScrollEdges()
             }
             if (event.text == Key.RightArrow) {
-                scroll.viewport-x += 30px;
+                scroll.viewport-x -= 30px;
                 checkScrollEdges()
             } 
             accept
