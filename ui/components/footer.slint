@@ -2,23 +2,25 @@ import { Theme } from "../theme.slint";
 import { HorizontalBox } from "std-widgets.slint";
 
 export component FooterSection inherits Rectangle {
-    padding-top: 5px;
-    padding-bottom: 5px;
+
     border-color: Theme.border_color;
     horizontal-stretch: 1;
     border-width: Theme.border_width;
     height: 35px;
     width: 100%;
-
+    background: Theme.dark_theme ? Theme.app_background_color.darker(-30%) : Theme.app_background_color.darker(30%);
 
     HorizontalLayout {
         spacing: 40px;
         alignment: end;
         padding-right: 30px;
+        padding-top: 3px;
+        padding-bottom: 3px;
 
         Rectangle {
             HorizontalLayout {
                 spacing: 5px;
+                alignment: center;
                 VerticalLayout {
                     alignment: center;
                     Image {
@@ -33,7 +35,7 @@ export component FooterSection inherits Rectangle {
                     text: "Donate";
                     color: Theme.label_text_color;
                     font-size: Theme.label_font_size_small;
-                    opacity: Theme.text_opacity;
+                    opacity: donate.has-hover ? 1.0 : Theme.text_opacity;
                     vertical-alignment: center;
                 }
             }
@@ -58,7 +60,7 @@ export component FooterSection inherits Rectangle {
                     text: "Help & Feedback";
                     color: Theme.label_text_color;
                     font-size: Theme.label_font_size_small;
-                    opacity: Theme.text_opacity;
+                    opacity: help_touch.has-hover ? 1.0 : Theme.text_opacity;
                     vertical-alignment: center;
                 }
             }
@@ -83,7 +85,7 @@ export component FooterSection inherits Rectangle {
                     text: "Shortcuts";
                     color: Theme.label_text_color;
                     font-size: Theme.label_font_size_small;
-                    opacity: Theme.text_opacity;
+                    opacity: shortcuts_touch.has-hover ? 1.0 : Theme.text_opacity;
                     vertical-alignment: center;
                 }
             }

@@ -82,6 +82,8 @@ export component HeadersSection inherits Rectangle {
     border-width: Theme.border_width;
     height: 50px;
     width: 100%;
+    background: Theme.dark_theme ? Theme.app_background_color.darker(-30%) : Theme.app_background_color.darker(30%);
+
 
     TouchArea {
         clicked => {
