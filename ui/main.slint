@@ -5,6 +5,8 @@ import { HeadersSection } from "./components/headers.slint";
 import { IconsPopup } from "./components/icons_popup.slint";
 import { CollectionsDropDown } from "./components/collection_dropdown.slint";
 import { RequestsDropDown } from "./components/request_dropdown.slint";
+import { FooterSection } from "./components/footer.slint";
+
 
 export component MainPage inherits Rectangle {
     in-out property <float> handle_position: 0.15;
@@ -43,9 +45,12 @@ export component MainPage inherits Rectangle {
         x: left.width + handle.width / 2; // Position right side after the handle
 
         HeadersSection {}
-        RequestsSection {}
+        RequestsSection {
+            horizontal-stretch: 1;
+            vertical-stretch: 1;
+        }
+        FooterSection {}
     }
-
 
     IconsPopup {z: 5;}
     CollectionsDropDown {}

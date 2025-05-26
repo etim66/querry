@@ -1,0 +1,97 @@
+import { Theme } from "../theme.slint";
+import { HorizontalBox } from "std-widgets.slint";
+
+export component FooterSection inherits Rectangle {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-color: Theme.border_color;
+    horizontal-stretch: 1;
+    border-width: Theme.border_width;
+    height: 35px;
+    width: 100%;
+
+
+    HorizontalLayout {
+        spacing: 40px;
+        alignment: end;
+        padding-right: 30px;
+
+        Rectangle {
+            HorizontalLayout {
+                spacing: 5px;
+                VerticalLayout {
+                    alignment: center;
+                    Image {
+                        source: @image-url("../icons/donate.svg");
+                        width: 20px;
+                        height: 20px;
+                        colorize: #cf0682;
+                    }
+                }
+    
+                Text {
+                    text: "Donate";
+                    color: Theme.label_text_color;
+                    font-size: Theme.label_font_size_small;
+                    opacity: Theme.text_opacity;
+                    vertical-alignment: center;
+                }
+            }
+            donate := TouchArea {
+                mouse-cursor: self.has-hover ? pointer : default;
+            }
+        }
+
+        Rectangle {
+            HorizontalLayout {
+                spacing: 5px;
+                VerticalLayout {
+                    alignment: center;
+                    Image {
+                        source: @image-url("../icons/help.svg");
+                        width: 20px;
+                        height: 20px;
+                    }
+                }
+    
+                Text {
+                    text: "Help & Feedback";
+                    color: Theme.label_text_color;
+                    font-size: Theme.label_font_size_small;
+                    opacity: Theme.text_opacity;
+                    vertical-alignment: center;
+                }
+            }
+            help_touch := TouchArea {
+                mouse-cursor: self.has-hover ? pointer : default;
+            }
+        }
+
+        Rectangle {
+            HorizontalLayout {
+                spacing: 5px;
+                VerticalLayout {
+                    alignment: center;
+                    Image {
+                        source: @image-url("../icons/shortcut.svg");
+                        width: 20px;
+                        height: 20px;
+                    }
+                }
+                
+                Text {
+                    text: "Shortcuts";
+                    color: Theme.label_text_color;
+                    font-size: Theme.label_font_size_small;
+                    opacity: Theme.text_opacity;
+                    vertical-alignment: center;
+                }
+            }
+
+            shortcuts_touch := TouchArea {
+                mouse-cursor: self.has-hover ? pointer : default;
+            }
+        }
+
+    }
+}
