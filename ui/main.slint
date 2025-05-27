@@ -10,17 +10,27 @@ import { FooterSection } from "./components/footer.slint";
 
 export component MainPage inherits Rectangle {
     in-out property <float> handle_position: 0.15;
+    in-out property <float> new_pos;
+
+    handle := Rectangle {
+        x: root.handle_position * parent.width;
+        width: 5px;
+        height: parent.height;
+        border-color: Theme.app_background_color;
+    }
 
     touch := TouchArea {
-        property<bool> on_handle: abs(self.mouse-x - (handle.x)) < 5px;
-        mouse-cursor: on_handle ? col-resize : default;
-
-        property<float> mouse_position;
+        x: handle.x - self.width / 2;
+        width: 10px;
+        height: parent.height;
+        mouse-cursor: col-resize;
 
         moved => {
-            mouse_position = self.mouse-x / parent.width;
-            if (mouse_position >= 0.04 && mouse_position <= 0.5 && self.pressed) {
-                handle_position = mouse_position;
+            if (self.pressed) {
+                new_pos = (self.mouse-x + self.x) / parent.width;
+                if (new_pos >= 0.04 && new_pos <= 0.96) {
+                    handle_position = new_pos;
+                }
             }
         }
     }
@@ -32,17 +42,10 @@ export component MainPage inherits Rectangle {
         width: handle.x - handle.width / 2;
     }
 
-    handle := Rectangle {
-        x: root.handle_position * parent.width;
-        width: 0px;
-        height: parent.height;
-        border-color: Theme.app_background_color;
-    }
-
     right := VerticalLayout {
         z: 2;
         width: (1 - root.handle_position) * parent.width;
-        x: left.width + handle.width / 2; // Position right side after the handle
+        x: left.width + handle.width / 2;
 
         HeadersSection {}
         RequestsSection {

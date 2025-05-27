@@ -2,15 +2,41 @@ import { Theme } from "../theme.slint";
 
 
 export component RequestsSection inherits Rectangle {
-    padding: 20px;
-    border-color: Theme.border_color;
-    horizontal-stretch: 1;
-    border-width: Theme.border_width;
+    in-out property <float> inner_handle_position: 0.5;
+    in-out property <float> new_pos;
+    
+    inner_handle := Rectangle {
+        x: root.inner_handle_position * parent.width;
+        height: parent.height;
+        border-width: 1px;
+        border-color: Theme.border_color;
+    }
 
-    Text {
-        text: "Requests Body";
-        font-size: Theme.label_font_size_medium;
-        color: Theme.label_text_color;
-        horizontal-alignment: center;
+    inner_touch := TouchArea {
+        x: inner_handle.x - self.width / 2;
+        width: 10px;
+        height: parent.height;
+        mouse-cursor: col-resize;
+
+        moved => {
+            if (self.pressed) {
+                new_pos = (self.mouse-x + self.x) / parent.width;
+                if (new_pos >= 0.04 && new_pos <= 0.96) {
+                    inner_handle_position = new_pos;
+                }
+            }
+        }
+    }
+
+    left_content := Rectangle {
+        z: 1;
+        x: parent.x;
+        width: inner_handle.x - inner_handle.width / 2;
+    }
+
+    right_content := Rectangle {
+        z: 2;
+        width: (1 - root.inner_handle_position) * parent.width;
+        x: left_content.width + inner_handle.width / 2;
     }
 }
