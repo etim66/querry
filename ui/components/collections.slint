@@ -44,6 +44,11 @@ export component CollectionSection inherits Rectangle {
                 scroll.viewport-y -= 30px;
                 checkScrollEdges()
             } 
+            if (event.modifiers.control) {
+                if (event.text == "l") {
+                    Theme.dark_theme = !Theme.dark_theme;
+                }   
+            }
             accept
         }
     }

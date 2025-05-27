@@ -14,9 +14,9 @@ export component MainPage inherits Rectangle {
 
     handle := Rectangle {
         x: root.handle_position * parent.width;
-        width: 5px;
+        width: 1px;
         height: parent.height;
-        border-color: Theme.app_background_color;
+        border-color: root.background;
     }
 
     touch := TouchArea {

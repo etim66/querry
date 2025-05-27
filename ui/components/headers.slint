@@ -96,13 +96,22 @@ export component HeadersSection inherits Rectangle {
         key-pressed(event) => {
 
             if (event.text == Key.LeftArrow) {
+                // move left
                 scroll.viewport-x += 30px;
                 checkScrollEdges()
             }
             if (event.text == Key.RightArrow) {
+                // move right
                 scroll.viewport-x -= 30px;
                 checkScrollEdges()
-            } 
+            }
+            
+            if (event.modifiers.control) {
+                if (event.text == "l") {
+                    Theme.dark_theme = !Theme.dark_theme;
+                }   
+            }
+            
             accept
         }
     }
