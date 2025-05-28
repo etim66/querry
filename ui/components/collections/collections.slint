@@ -1,11 +1,11 @@
 import { ListView } from "std-widgets.slint";
 
-import { Theme } from "../theme.slint";
+import { Theme } from "../../theme.slint";
 import {SearchForm} from "./forms.slint";
-import { IconButton } from "./buttons.slint";
-import { AppConfig, CollectionItem} from "../global.slint";
+import { IconButton } from "../shared/buttons.slint";
+import { AppConfig, CollectionItem} from "../../global.slint";
 import { CollectionComponent } from "./collection_item.slint";
-import { BaseButton } from "./buttons.slint";
+import { BaseButton } from "../shared/buttons.slint";
 
 
 export component CollectionSection inherits Rectangle {
@@ -84,7 +84,7 @@ export component CollectionSection inherits Rectangle {
                 border-radius: Theme.border_radius;
                         
                 image := Image {
-                    source: @image-url("../icons/create_folder.svg");
+                    source: @image-url("../../icons/create_folder.svg");
                     colorize: Theme.icon_color;
                 }
 

@@ -1,9 +1,9 @@
-
-import { Theme } from "../theme.slint";
-import { AppConfig, CollectionItemActive } from "../global.slint";
-
-import { GridView } from "./gridview.slint";
 import { ScrollView } from "std-widgets.slint";
+
+import { Theme } from "../../theme.slint";
+import { AppConfig, CollectionItemActive } from "../../global.slint";
+import { GridView } from "../shared/gridview.slint";
+
 
 
 export component IconsPopup inherits Rectangle {
@@ -50,7 +50,7 @@ export component IconsPopup inherits Rectangle {
                     }
 
                     Image {
-                        source: @image-url("../icons/close.svg");
+                        source: @image-url("../../icons/close.svg");
                         colorize: Theme.icon_color;
                         width: 24px;
                         height: 24px;

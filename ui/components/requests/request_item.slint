@@ -1,6 +1,6 @@
 import { Button, CheckBox, HorizontalBox, VerticalBox } from "std-widgets.slint";
-import { AppConfig, CollectionItemActive } from "../global.slint";
-import { Theme } from "../theme.slint";
+import { AppConfig, CollectionItemActive } from "../../global.slint";
+import { Theme } from "../../theme.slint";
 
 
 export component RequestComponent inherits Rectangle {
@@ -133,7 +133,7 @@ export component RequestComponent inherits Rectangle {
                     }
                 }
                 more := Image {
-                    source: @image-url("../icons/more.svg");
+                    source: @image-url("../../icons/more.svg");
                     colorize: Theme.icon_color;
                     visible: touch-area.has-hover ? true : more_touch.has-hover ? true : false;
                 }

@@ -1,0 +1,74 @@
+import { Theme } from "../../theme.slint";
+import { AppConfig } from "../../global.slint";
+
+
+export component HeaderItem inherits Rectangle {
+    width: 200px;
+    height: 100%;
+    in-out property <image> collection_icon;
+    in-out property <string> name;
+    in-out property <int> index;
+    in-out property <string> id;
+    in property <color> component_background;
+    background: touch-area.has-hover ? grey.darker(20%) : AppConfig.active_request_id == id ? grey.darker(20%) : component_background;
+    border-radius: Theme.border_radius;
+    callback request-focus-parent();
+
+    touch-area := TouchArea {
+        mouse-cursor: self.has-hover ? pointer : default;
+        clicked => {
+            AppConfig.active_request_id = id;
+            root.request-focus-parent();
+        }
+    }
+
+    HorizontalLayout {
+        padding-left: 5px;
+        padding-right: 5px;
+        alignment: space-between;
+
+        VerticalLayout {
+            alignment: center;
+            Image {
+                source: collection_icon;
+                width: Theme.icon_box_with - 2px;
+                height: Theme.icon_box_with - 2px;
+            }
+        }
+
+
+        Text {
+            text: name;
+            color: Theme.label_text_color;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            max-width: 130px;
+            wrap: TextWrap.no-wrap;
+            overflow: TextOverflow.elide;
+        }
+
+
+        VerticalLayout {
+            alignment: center;
+
+            Rectangle {
+                width: Theme.icon_box_with - 10px;
+                height: Theme.icon_box_with  - 10px;
+                border-radius: Theme.border_radius;
+
+                Image {
+                    source: @image-url("../../icons/close.svg");
+                    colorize: touch.has-hover ? red : gray;
+                }
+
+                touch := TouchArea {
+                    clicked => {
+                        AppConfig.remove_selected_request(index);
+                    }
+                }
+            }
+        }
+    }
+
+    
+}
