@@ -4,10 +4,107 @@ import { RequestsFormComponent } from "./requests_form.slint";
 
 
 export component BaseRequests inherits Rectangle {
+    in-out property <string> active_tab: "Headers";
+    in-out property <length> underline_start;
+    in-out property <length> underline_width;
+
     VerticalLayout {
         form_component := RequestsFormComponent {
             height: 55px;
         }
+
+        Rectangle {
+            width: 100%;
+            height: 1px;
+            border-color: Theme.border_color;
+            border-width: 1px;
+        }
+
+        HorizontalLayout {
+            spacing: 15px;
+            height: 30px;
+            alignment: start;
+            padding-left: 6px;
+            padding-bottom: 3px;
+
+            label_headers := HorizontalLayout {
+                alignment: start;
+                headers := Text {
+                    text: "Headers";
+                    color: Theme.label_text_color;
+                    font-size: Theme.label_font_size_medium_small;
+                    opacity: root.active_tab == self.text ? 1 : Theme.text_opacity;
+                    vertical-alignment: TextVerticalAlignment.bottom;
+
+                    TouchArea {
+                        clicked => {
+                            root.active_tab = headers.text;
+                            root.underline_start = parent.x;
+                            root.underline_width = parent.width;
+                        }
+                    }
+
+                    init => {
+                        root.underline_start = self.x;
+                        root.underline_width = self.width;
+                    }
+                }
+
+                Text {
+                    text: "(3)";
+                    color: green;
+                    font-size: Theme.label_font_size_medium_small;
+                    opacity: root.active_tab == headers.text ? 1 : Theme.text_opacity;
+                    vertical-alignment: TextVerticalAlignment.bottom;
+                }
+
+            }
+
+            label_body := Text {
+                text: "Body";
+                color: Theme.label_text_color;
+                font-size: Theme.label_font_size_medium_small;
+                opacity: root.active_tab == self.text ? 1 : Theme.text_opacity;
+                vertical-alignment: TextVerticalAlignment.bottom;
+
+                TouchArea {
+                    clicked => {
+                        root.active_tab = parent.text;
+                        root.underline_start = parent.x;
+                        root.underline_width = parent.width;
+
+                        debug(root.underline_start)
+                    }
+                }
+            }
+
+            label_auth := Text {
+                text: "Auth";
+                color: Theme.label_text_color;
+                font-size: Theme.label_font_size_medium_small;
+                opacity: root.active_tab == self.text ? 1 : Theme.text_opacity;
+                vertical-alignment: TextVerticalAlignment.bottom;
+
+                TouchArea {
+                    clicked => {
+                        root.active_tab = parent.text;
+                        root.underline_start = parent.x;
+                        root.underline_width = parent.width;
+
+                        debug(root.underline_start)
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            width: root.underline_width;
+            x: root.underline_start;
+            border-color: blue;
+            border-width: 2px;
+            height: 1px;
+        }
+
 
         Rectangle {
             width: 100%;
