@@ -1,4 +1,5 @@
 import { Theme } from "../../theme.slint";
+import { BaseRequests } from "../base_requests/base.slint";
 
 
 export component RequestsSection inherits Rectangle {
@@ -9,6 +10,7 @@ export component RequestsSection inherits Rectangle {
         x: root.inner_handle_position * parent.width;
         height: parent.height;
         border-width: 1px;
+        width: 1px;
         border-color: Theme.border_color;
     }
 
@@ -28,7 +30,7 @@ export component RequestsSection inherits Rectangle {
         }
     }
 
-    left_content := Rectangle {
+    left_content := BaseRequests {
         z: 1;
         x: parent.x;
         width: inner_handle.x - inner_handle.width / 2;

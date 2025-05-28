@@ -1,0 +1,20 @@
+import { Theme } from "../../theme.slint";
+import { AppConfig } from "../../global.slint";
+import { RequestsFormComponent } from "./requests_form.slint";
+
+
+export component BaseRequests inherits Rectangle {
+    VerticalLayout {
+        form_component := RequestsFormComponent {
+            height: 50px;
+            
+        }
+
+        Rectangle {
+            width: 100%;
+            height: 1px;
+            border-color: Theme.border_color;
+            border-width: 1px;
+        }
+    }
+}

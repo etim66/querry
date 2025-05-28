@@ -1,0 +1,94 @@
+import { Theme } from "../../theme.slint";
+import { AppConfig } from "../../global.slint";
+import { HorizontalBox } from "std-widgets.slint";
+
+export component RequestsFormComponent inherits HorizontalLayout {
+    spacing: 6px;
+    padding-top: 9px;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-bottom: 9px;
+    
+
+    Rectangle {
+        border-radius: Theme.border_radius;
+        border-color: Theme.border_color;
+        border-width: Theme.border_width;
+        horizontal-stretch: 1;
+        background: Theme.dark_theme ? Theme.app_background_color.darker(-30%) : Theme.app_background_color.darker(30%);
+
+        HorizontalLayout {
+            spacing: 8px;
+            padding-left: 8px;
+    
+            method := Text {
+                text: "GET";
+                color: green;
+                font-size: Theme.label_font_size_medium_small;
+                vertical-alignment: center;
+                font-weight: Theme.font_weight_bold;
+                padding-left: 5px;
+            }
+
+            touch_area := TouchArea{ 
+                horizontal-stretch: 1;
+    
+                clicked => {
+                    debug("request form clicked")
+                }
+    
+                text := TextInput {
+                    color: Theme.label_text_color;
+                    horizontal-stretch: 1;
+                    vertical-alignment: center;
+                    font-size: Theme.label_font_size_medium_small;
+                    wrap: no-wrap;
+                    single-line: true;
+                    width: 100%;
+                    font-weight: Theme.font_weight_higher;
+
+                    edited() => {}
+                    
+                    accepted() => {
+                        self.clear-focus();
+                    }
+                }
+            }
+        }
+    }
+
+
+    Rectangle {
+        background: touch.has-hover ? Theme.primary_color.darker(20%) : Theme.primary_color;
+        border-radius: Theme.border_radius;
+        width: 95px;
+
+        touch := TouchArea {
+            clicked => {
+                debug("submit clicked")
+            }
+        }
+
+        HorizontalLayout {
+            alignment: center;
+            VerticalLayout {
+                alignment: center;
+                Image {
+                    source: @image-url("../../icons/send.svg");
+                    colorize: Theme.icon_color;
+                    width: 25px;
+                }
+            }
+
+            Text {
+                text: "SEND";
+                color: white;
+                font-size: Theme.label_font_size_medium_small;
+                vertical-alignment: center;
+                font-weight: Theme.font_weight_bold;
+                opacity: Theme.text_opacity;
+            }
+        }
+        
+    }
+}
