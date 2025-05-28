@@ -24,11 +24,12 @@ export component BaseRequests inherits Rectangle {
             spacing: 15px;
             height: 30px;
             alignment: start;
-            padding-left: 6px;
             padding-bottom: 3px;
+            
+
 
             label_headers := HorizontalLayout {
-                alignment: start;
+                padding-left: 14px;
                 headers := Text {
                     text: "Headers";
                     color: Theme.label_text_color;
@@ -39,14 +40,14 @@ export component BaseRequests inherits Rectangle {
                     TouchArea {
                         clicked => {
                             root.active_tab = headers.text;
-                            root.underline_start = parent.x;
-                            root.underline_width = parent.width;
+                            root.underline_start = parent.x - 2px;
+                            root.underline_width = parent.width + 2px;
                         }
                     }
 
                     init => {
                         root.underline_start = self.x;
-                        root.underline_width = self.width;
+                        root.underline_width = self.width + 2px;
                     }
                 }
 
@@ -70,10 +71,8 @@ export component BaseRequests inherits Rectangle {
                 TouchArea {
                     clicked => {
                         root.active_tab = parent.text;
-                        root.underline_start = parent.x;
-                        root.underline_width = parent.width;
-
-                        debug(root.underline_start)
+                        root.underline_start = parent.x - 2px;
+                        root.underline_width = parent.width + 2px;
                     }
                 }
             }
@@ -88,10 +87,8 @@ export component BaseRequests inherits Rectangle {
                 TouchArea {
                     clicked => {
                         root.active_tab = parent.text;
-                        root.underline_start = parent.x;
-                        root.underline_width = parent.width;
-
-                        debug(root.underline_start)
+                        root.underline_start = parent.x - 2px;
+                        root.underline_width = parent.width + 2px;
                     }
                 }
             }
