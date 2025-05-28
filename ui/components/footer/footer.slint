@@ -1,5 +1,5 @@
-import { Theme } from "../theme.slint";
 import { HorizontalBox } from "std-widgets.slint";
+import { Theme } from "../../theme.slint";
 
 export component FooterSection inherits Rectangle {
 
@@ -25,7 +25,7 @@ export component FooterSection inherits Rectangle {
                 VerticalLayout {
                     alignment: center;
                     Image {
-                        source: @image-url("../icons/donate.svg");
+                        source: @image-url("../../icons/donate.svg");
                         width: 20px;
                         height: 20px;
                         colorize: #cf0682;
@@ -51,7 +51,7 @@ export component FooterSection inherits Rectangle {
                 VerticalLayout {
                     alignment: center;
                     Image {
-                        source: @image-url("../icons/help.svg");
+                        source: @image-url("../../icons/help.svg");
                         width: 20px;
                         height: 20px;
                         colorize: Theme.icon_color;
@@ -77,7 +77,7 @@ export component FooterSection inherits Rectangle {
                 VerticalLayout {
                     alignment: center;
                     Image {
-                        source: @image-url("../icons/shortcut.svg");
+                        source: @image-url("../../icons/shortcut.svg");
                         width: 20px;
                         height: 20px;
                         colorize: Theme.icon_color;

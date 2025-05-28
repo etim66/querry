@@ -1,9 +1,9 @@
 import { ListView } from "std-widgets.slint";
 
 import { Button, CheckBox, HorizontalBox, VerticalBox } from "std-widgets.slint";
-import { AppConfig, CollectionItemActive } from "../global.slint";
-import { Theme } from "../theme.slint";
-import { RequestComponent } from "./request_item.slint";
+import { AppConfig, CollectionItemActive } from "../../global.slint";
+import { Theme } from "../../theme.slint";
+import { RequestComponent } from "../requests/request_item.slint";
 
 
 export component CollectionComponent inherits Rectangle {
@@ -190,7 +190,7 @@ export component CollectionComponent inherits Rectangle {
                         }
                     }
                     more := Image {
-                        source: @image-url("../icons/more.svg");
+                        source: @image-url("../../icons/more.svg");
                         colorize: Theme.icon_color;
                     }
                 }

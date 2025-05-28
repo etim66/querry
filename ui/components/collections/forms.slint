@@ -1,5 +1,5 @@
-import { Theme } from "../theme.slint";
-import { AppConfig } from "../global.slint";
+import { Theme } from "../../theme.slint";
+import { AppConfig } from "../../global.slint";
 
 export component SearchForm inherits Rectangle {
     border-radius: Theme.border_radius;
@@ -17,7 +17,7 @@ export component SearchForm inherits Rectangle {
         padding-bottom: 3px;
 
         image := Image {
-            source: @image-url("../icons/search.svg");
+            source: @image-url("../../icons/search.svg");
             touch := TouchArea {}
             colorize: Theme.icon_color;
         }
