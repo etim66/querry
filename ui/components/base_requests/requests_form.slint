@@ -47,7 +47,20 @@ export component RequestsFormComponent inherits HorizontalLayout {
                     width: 100%;
                     font-weight: Theme.font_weight_higher;
 
-                    edited() => {}
+                    edited() => {
+                        if self.text != "" {
+                            // Call update request callback
+                            // AppConfig.update_request_item(
+                            //     AppConfig.selected_requests[AppConfig.active],
+                            //     self.text,
+                            //     root.protocol,
+                            //     root.http_method,
+                            //     root.url,
+                            //     root.index
+                            // );
+                            
+                        }
+                    }
                     
                     accepted() => {
                         self.clear-focus();

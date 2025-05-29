@@ -6,19 +6,22 @@ export component HeaderItem inherits Rectangle {
     width: 200px;
     height: 100%;
     in-out property <image> collection_icon;
+    in-out property <int> collection_index;
     in-out property <string> name;
     in-out property <int> index;
     in-out property <string> id;
     in property <color> component_background;
-    background: touch-area.has-hover ? grey.darker(20%) : AppConfig.active_request_id == id ? grey.darker(20%) : component_background;
+    background: touch-area.has-hover ? grey.darker(20%) : AppConfig.active_selected_request.item.id == id ? grey.darker(20%) : component_background;
     border-radius: Theme.border_radius;
     callback request-focus-parent();
 
     touch-area := TouchArea {
         mouse-cursor: self.has-hover ? pointer : default;
         clicked => {
-            AppConfig.active_request_id = id;
             root.request-focus-parent();
+            AppConfig.mark_request_active(index);
+            AppConfig.show_request_section = true;
+
         }
     }
 
@@ -64,6 +67,10 @@ export component HeaderItem inherits Rectangle {
                 touch := TouchArea {
                     clicked => {
                         AppConfig.remove_selected_request(index);
+                        if AppConfig.active_selected_request.item.id == id {
+                            AppConfig.active_selected_request = {};
+                            AppConfig.show_request_section = false;
+                        }
                     }
                 }
             }

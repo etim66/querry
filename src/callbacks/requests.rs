@@ -257,14 +257,21 @@ pub async fn process_request_selection(app: &AppWindow) -> Result<(), Box<dyn Er
             }
         }
 
+        let selected_request = SelectedRequestItem {
+            item: selected_request.clone(),
+            collection_icon: active_collection.icon.clone(),
+            collection_id: active_collection.id.clone(),
+            collection_index: collection_index,
+        };
+
         if !request_already_selected {
-            selected_requests.push(SelectedRequestItem {
-                item: selected_request.clone(),
-                collection_icon: active_collection.icon.clone(),
-                collection_id: active_collection.id.clone(),
-            });
+            selected_requests.push(selected_request.clone());
             cfg.set_selected_requests(Rc::new(VecModel::from(selected_requests)).into());
         }
+
+        // Set selected request as active.
+        cfg.set_active_selected_request(selected_request);
+        cfg.set_show_request_section(true);
     });
 
     Ok(())
@@ -290,6 +297,31 @@ pub async fn process_request_remove(app: &AppWindow) -> Result<(), Box<dyn Error
         };
 
         cfg.set_selected_requests(Rc::new(VecModel::from(selected_requests)).into());
+    });
+
+    Ok(())
+}
+
+/// Handle setting a selected request as active.
+pub async fn mark_selected_request_active(app: &AppWindow) -> Result<(), Box<dyn Error>> {
+    let config = app.global::<AppConfig>();
+    let weak_app = app.as_weak();
+
+    config.on_mark_request_active(move |request_index| {
+        let app = weak_app.upgrade().unwrap();
+        let cfg = app.global::<AppConfig>();
+
+        // Remove selected request from list.
+        let selected_requests: Vec<SelectedRequestItem> =
+            cfg.get_selected_requests().iter().collect();
+
+        let selected_request = if let Some(request) = selected_requests.get(request_index as usize)
+        {
+            request.clone()
+        } else {
+            return;
+        };
+        cfg.set_active_selected_request(selected_request);
     });
 
     Ok(())
