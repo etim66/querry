@@ -29,7 +29,8 @@ export struct RequestItem {
 export struct SelectedRequestItem {
     item: RequestItem,
     collection_icon: image,
-    collection_id: string
+    collection_id: string,
+    collection_index: int
 }
 
 
@@ -73,7 +74,7 @@ export global AppConfig {
     in-out property <bool> show_icons_popup: false;
     in-out property <[IconsModel]> icons: [];
 
-    // Requests.
+    // Collection module requests.
     in-out property <[RequestItem]> active_collection_requests: [];
     in-out property <RequestItemActive> active_request_item;
     in-out property <bool> active_request_rename_mode: false;
@@ -82,11 +83,13 @@ export global AppConfig {
     callback get_requests(string); // collection id
     callback create_request_item(string, int); // collection id, collection_index
     callback remove_request_item(string, int, int); // request id, request_index,  collection_index
-    callback update_request_item(string, string, string, string, string, int); // id, name, protocol, http_method, url, index
+    callback update_request_item(string, string, string, string, string); // id, name, protocol, http_method, url
 
     // Headers
     in-out property <[SelectedRequestItem]> selected_requests: [];
-    in-out property <string> active_request_id;
+    in-out property <SelectedRequestItem> active_selected_request;
+    in-out property <bool> show_request_section: false;
     callback add_selected_request(int, int); // request_index, collection_index
     callback remove_selected_request(int); // index
+    callback mark_request_active(int); // make a selected request active. index
 }

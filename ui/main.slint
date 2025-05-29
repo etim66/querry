@@ -1,4 +1,5 @@
 import { Theme } from "./theme.slint";
+import { AppConfig } from "./global.slint";
 import { CollectionSection } from "./components/collections/collections.slint";
 import { RequestsSection } from "./components/requests/requests.slint";
 import { HeadersSection } from "./components/header/headers.slint";
@@ -48,10 +49,17 @@ export component MainPage inherits Rectangle {
         x: left.width + handle.width / 2;
 
         HeadersSection {}
-        RequestsSection {
-            horizontal-stretch: 1;
-            vertical-stretch: 1;
-        }
+        if AppConfig.show_request_section:
+            RequestsSection {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+            }
+        
+        if !(AppConfig.show_request_section):
+            Rectangle {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+            }
         FooterSection {}
     }
 
