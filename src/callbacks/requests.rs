@@ -110,7 +110,7 @@ pub async fn process_update_request(
     let weak_app = app.as_weak();
 
     let db_copy = db.clone();
-    config.on_update_request_item(move |request_id, name, protocol, http_method, url, index| {
+    config.on_update_request_item(move |request_id, name, protocol, http_method, url| {
         let weak_app_for_task = weak_app.clone();
         let db_copy_for_task = db_copy.clone();
 
@@ -144,8 +144,11 @@ pub async fn process_update_request(
 
             let mut items: Vec<RequestItem> = cfg.get_active_collection_requests().iter().collect();
 
-            if let Some(item_ref) = items.get_mut(index as usize) {
-                *item_ref = request_data;
+            for item in items.iter_mut().enumerate() {
+                if item.1.id == request_id {
+                    *item.1 = request_data.clone();
+                    break;
+                }
             }
             cfg.set_active_collection_requests(Rc::new(VecModel::from(items)).into());
 
@@ -155,7 +158,7 @@ pub async fn process_update_request(
 
             for item in selected_requests.iter_mut() {
                 if item.item.id == request_id {
-                    item.item.name = name;
+                    item.item = request_data;
                     break;
                 }
             }
@@ -261,7 +264,7 @@ pub async fn process_request_selection(app: &AppWindow) -> Result<(), Box<dyn Er
             item: selected_request.clone(),
             collection_icon: active_collection.icon.clone(),
             collection_id: active_collection.id.clone(),
-            collection_index: collection_index,
+            collection_index,
         };
 
         if !request_already_selected {
@@ -321,6 +324,7 @@ pub async fn mark_selected_request_active(app: &AppWindow) -> Result<(), Box<dyn
         } else {
             return;
         };
+
         cfg.set_active_selected_request(selected_request);
     });
 

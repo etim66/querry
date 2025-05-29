@@ -8,7 +8,11 @@ export component RequestsFormComponent inherits HorizontalLayout {
     padding-left: 6px;
     padding-right: 6px;
     padding-bottom: 8px;
-    
+    property <string> url: AppConfig.active_selected_request.item.url;
+
+    changed url => {
+        text.text = url;
+    }
 
     Rectangle {
         border-radius: Theme.border_radius;
@@ -22,7 +26,7 @@ export component RequestsFormComponent inherits HorizontalLayout {
             padding-left: 8px;
     
             method := Text {
-                text: "GET";
+                text: AppConfig.active_selected_request.item.http-method.to-uppercase();
                 color: green;
                 font-size: Theme.label_font_size_medium_small;
                 vertical-alignment: center;
@@ -30,41 +34,33 @@ export component RequestsFormComponent inherits HorizontalLayout {
                 padding-left: 5px;
             }
 
-            touch_area := TouchArea{ 
+            text := TextInput {
+                color: Theme.label_text_color;
                 horizontal-stretch: 1;
-    
-                clicked => {
-                    debug("request form clicked")
-                }
-    
-                text := TextInput {
-                    color: Theme.label_text_color;
-                    horizontal-stretch: 1;
-                    vertical-alignment: center;
-                    font-size: Theme.label_font_size_medium_small;
-                    wrap: no-wrap;
-                    single-line: true;
-                    width: 100%;
-                    font-weight: Theme.font_weight_higher;
+                vertical-alignment: center;
+                font-size: Theme.label_font_size_medium_small;
+                wrap: no-wrap;
+                single-line: true;
+                width: 100%;
+                font-weight: Theme.font_weight_higher;
+                text: AppConfig.active_selected_request.item.url;
 
-                    edited() => {
-                        if self.text != "" {
-                            // Call update request callback
-                            // AppConfig.update_request_item(
-                            //     AppConfig.selected_requests[AppConfig.active],
-                            //     self.text,
-                            //     root.protocol,
-                            //     root.http_method,
-                            //     root.url,
-                            //     root.index
-                            // );
-                            
-                        }
+                edited() => {
+                    if self.text != "" {
+                        // Call update request callback
+                        AppConfig.update_request_item(
+                            AppConfig.active_selected_request.item.id,
+                            AppConfig.active_selected_request.item.name,
+                            AppConfig.active_selected_request.item.protocol,
+                            AppConfig.active_selected_request.item.http-method,
+                            self.text,
+                        );
+                        
                     }
-                    
-                    accepted() => {
-                        self.clear-focus();
-                    }
+                }
+                
+                accepted() => {
+                    self.clear-focus();
                 }
             }
         }
