@@ -113,14 +113,64 @@ component TableView inherits Rectangle {
 export component HeadersComponent inherits Rectangle {
     background: Theme.app_background_color;
 
-    
+    VerticalLayout {
+        Rectangle {
+            background: Theme.dark_theme ? Theme.app_background_color.darker(-30%) : Theme.app_background_color.darker(30%);
+            height: 40px;
 
-    TableView {
-       // Add "Selected" to your column headers
-       columns: ["", "Key", "Value"];
-       values: [
-            { active: false, key: "content-type", value: "json" },
-            { active: false, key: "authorization", value: "bearer" },
-       ];
-   }
+            HorizontalLayout {
+                alignment: space-between;
+                padding-left: 15px;
+                padding-right: 15px;
+                Text {
+                    color: Theme.label_text_color;
+                    font-size: Theme.label_font_size_medium_small;
+                    text: "Headers list";
+                    opacity: 0.5;
+                    vertical-alignment: center;
+                }
+        
+                VerticalLayout {
+                    alignment: center;
+                    Rectangle {
+                        
+                        width: Theme.icon_box_with - 5px;
+                        height: Theme.icon_box_with - 5px;
+                                
+                        image := Image {
+                            source: @image-url("../../icons/add.svg");
+                            colorize: Theme.icon_color;
+                            opacity: 0.5;
+                        }
+        
+                        touch := TouchArea {
+                            mouse-cursor: self.has-hover ? pointer : default;
+                            clicked => {
+                            }
+                        }
+                    }
+                }
+        
+        
+            }
+        }
+    
+        Rectangle {
+            width: 100%;
+            height: 1px;
+            border-color: Theme.border_color;
+            border-width: 1px;
+        }
+    
+        TableView {
+           // Add "Selected" to your column headers
+           columns: ["", "Key", "Value"];
+           values: [
+                { active: false, key: "content-type", value: "json" },
+                { active: false, key: "authorization", value: "bearer" },
+           ];
+       }
+    }
+
+    
 }
