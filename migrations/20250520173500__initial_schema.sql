@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS collectionheader(
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     name TEXT,
     value TEXT,
+    active INTEGER NOT NULL DEFAULT 1, -- Boolean field (0 for false, 1 for true)
     collection_id TEXT NOT NULL REFERENCES collectionitem(id) ON DELETE CASCADE
 );
 
@@ -22,4 +23,13 @@ CREATE TABLE IF NOT EXISTS requestitem(
     protocol TEXT,
     http_method TEXT,
     collection_id TEXT NOT NULL REFERENCES collectionitem(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS requestheader(
+    id TEXT NOT NULL PRIMARY KEY,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    name TEXT,
+    value TEXT,
+    active INTEGER NOT NULL DEFAULT 1, -- Boolean field (0 for false, 1 for true)
+    request_id TEXT NOT NULL REFERENCES requestitem(id) ON DELETE CASCADE
 );
