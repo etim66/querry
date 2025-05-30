@@ -1,12 +1,14 @@
 import { Theme } from "../../theme.slint";
 import { AppConfig } from "../../global.slint";
 import { RequestsFormComponent } from "./requests_form.slint";
+import { HeadersComponent } from "./header.slint";
 
 
 export component BaseRequests inherits Rectangle {
     in-out property <string> active_tab: "Headers";
     in-out property <length> underline_start;
     in-out property <length> underline_width;
+    background: Theme.dark_theme ? Theme.app_background_color.darker(-30%) : Theme.app_background_color.darker(30%);
 
     VerticalLayout {
         form_component := RequestsFormComponent {
@@ -109,5 +111,8 @@ export component BaseRequests inherits Rectangle {
             border-color: Theme.border_color;
             border-width: 1px;
         }
+
+        if (root.active_tab == "Headers"):
+            HeadersComponent {vertical-stretch: 1;}
     }
 }

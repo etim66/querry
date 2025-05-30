@@ -1,0 +1,126 @@
+import { VerticalBox, ListView, CheckBox } from "std-widgets.slint";
+import { Theme } from "../../theme.slint";
+
+struct TableRowData {
+    active: bool,
+    key: string,
+    value: string
+}
+
+component TableView inherits Rectangle {
+    in-out property <[TableRowData]> values;
+    in property <[string]> columns;
+
+    private property <length> e: self.width / root.columns.length;
+    private property <[length]> column_sizes: [
+        root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e,
+        root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e,
+        root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e,
+    ];
+
+    VerticalBox {
+        padding: 5px;
+        HorizontalLayout {
+            padding: 5px; spacing: 5px;
+            vertical-stretch: 0;
+            // Iterate over columns to create headers
+            for title[idx] in root.columns : HorizontalLayout {
+                width: title == "" ? 50px : root.column_sizes[idx];
+                Text {
+                    overflow: elide;
+                    text: title;
+                    color: Theme.label_text_color;
+                    font-size: Theme.label_font_size_medium_small;
+                }
+
+                if (idx < 2):
+                    Rectangle {
+                        width: 1px;
+                        background: gray;
+                        TouchArea {
+                            width: 10px;
+                            x: (parent.width - self.width) / 2;
+                            property <length> cached;
+                            pointer-event(event) => {
+                                if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
+                                    self.cached = root.column_sizes[idx];
+                                }
+                            }
+                            moved => {
+                                if (self.pressed) {
+                                    root.column_sizes[idx] += (self.mouse-x - self.pressed-x);
+                                    if (root.column_sizes[idx] < 50px) {
+                                        root.column_sizes[idx] = 50px;
+                                    }
+                                }
+                            }
+                            mouse-cursor: ew-resize;
+                        }
+                    }
+            }
+        }
+        ListView {
+            for row[row_idx] in root.values : HorizontalLayout {
+                padding: 5px;
+                spacing: 5px;
+
+                VerticalLayout {
+                    width: 50px;
+                    alignment: center;
+                    Rectangle {
+                        background: Theme.dark_theme ? Theme.app_background_color.darker(-60%) : Theme.app_background_color.darker(30%);
+                        width: 25px;
+                        border-radius: 4px;
+                        height: 25px;
+
+                        CheckBox {
+                            checked: row.active;
+                            toggled => {
+                                root.values[row_idx].active = !row.active;
+                            }
+                            
+                        }
+                    }
+                    
+                }
+                
+
+                HorizontalLayout {
+                    width: root.column_sizes[1];
+                    Text { 
+                        overflow: elide; 
+                        text: row.key;
+                        color: Theme.label_text_color;
+                        font-size: Theme.label_font_size_medium_small;
+                        vertical-alignment: center;
+                    }
+                }
+                HorizontalLayout {
+                    width: root.column_sizes[2];
+                    Text {
+                        overflow: elide;
+                        text: row.value;
+                        color: Theme.label_text_color;
+                        font-size: Theme.label_font_size_medium_small;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component HeadersComponent inherits Rectangle {
+    background: Theme.app_background_color;
+
+    
+
+    TableView {
+       // Add "Selected" to your column headers
+       columns: ["", "Key", "Value"];
+       values: [
+            { active: false, key: "content-type", value: "json" },
+            { active: false, key: "authorization", value: "bearer" },
+       ];
+   }
+}
