@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS requestitem(
 CREATE TABLE IF NOT EXISTS requestheader(
     id TEXT NOT NULL PRIMARY KEY,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    name TEXT,
+    key TEXT,
     value TEXT,
     active INTEGER NOT NULL DEFAULT 1, -- Boolean field (0 for false, 1 for true)
     request_id TEXT NOT NULL REFERENCES requestitem(id) ON DELETE CASCADE

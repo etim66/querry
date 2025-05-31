@@ -78,6 +78,14 @@ pub struct RequestData {
     pub http_method: Option<String>,
 }
 
+#[derive(Clone, Debug, FromRow)]
+pub struct RequestHeaderData {
+    pub id: String,
+    pub key: String,
+    pub value: String,
+    pub active: u8,
+}
+
 pub async fn get_collection_requests(
     pool: &SqlitePool,
     collection_id: &str,
@@ -165,6 +173,65 @@ pub async fn update_request_item(
         .await?;
 
     Ok(request)
+}
+
+pub async fn create_request_header(
+    request_id: &str,
+    key: &str,
+    value: &str,
+    pool: &SqlitePool,
+) -> Result<RequestHeaderData, Box<dyn Error>> {
+    let command = "INSERT INTO requestheader (id, key, value, request_id) VALUES ($1, $2, $3, $4) RETURNING id, key, value, active";
+    let header: RequestHeaderData = query_as(command)
+        .bind(Uuid::new_v4().to_string())
+        .bind(key)
+        .bind(value)
+        .bind(request_id)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(header)
+}
+
+/// Update a request item.
+pub async fn update_request_header(
+    id: &str,
+    key: &str,
+    value: &str,
+    active: u8,
+    pool: &SqlitePool,
+) -> Result<RequestHeaderData, Box<dyn Error>> {
+    let command = "UPDATE requestheader SET key=$1, value=$2, active=$3 WHERE id = $4 RETURNING id, key, value, active";
+    let header: RequestHeaderData = query_as(command)
+        .bind(key)
+        .bind(value)
+        .bind(active)
+        .bind(id)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(header)
+}
+
+pub async fn get_request_headers(
+    pool: &SqlitePool,
+    request_id: &str,
+) -> Result<Vec<RequestHeaderData>, Box<dyn Error>> {
+    let headers = query_as("SELECT id, key, value, active FROM requestheader WHERE request_id=$1 ORDER BY created_at DESC").bind(request_id).fetch_all(pool).await?;
+
+    Ok(headers)
+}
+
+pub async fn delete_request_header(
+    header_id: &str,
+    pool: &SqlitePool,
+) -> Result<(), Box<dyn Error>> {
+    query("DELETE FROM requestheader WHERE id=$1")
+        .bind(header_id)
+        .execute(pool)
+        .await?;
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -282,5 +349,90 @@ mod tests {
 
         assert!(updated_request.name == "Hello Request".to_string());
         assert!(updated_request.url == Some("https://bbc.co.uk".to_string()))
+    }
+
+    #[tokio::test]
+    async fn test_create_request_headers() {
+        let db = setup_test_db().await.expect("Cant setup db.");
+
+        let collection = create_collection("Test collection".to_string(), &db.clone())
+            .await
+            .unwrap();
+        let request = create_request(ProtocolTypes::Http, &collection.id, &db.clone())
+            .await
+            .expect("Cant create request");
+
+        let header = create_request_header(&request.id, "bin", "https", &db)
+            .await
+            .unwrap();
+        assert!(header.key == "bin".to_string());
+        assert!(header.value == "https".to_string());
+    }
+
+    #[tokio::test]
+    async fn test_update_request_headers() {
+        let db = setup_test_db().await.expect("Cant setup db.");
+
+        let collection = create_collection("Test collection".to_string(), &db.clone())
+            .await
+            .unwrap();
+        let request = create_request(ProtocolTypes::Http, &collection.id, &db.clone())
+            .await
+            .expect("Cant create request");
+
+        let header = create_request_header(&request.id, "bin", "https", &db)
+            .await
+            .unwrap();
+
+        let updated_header = match update_request_header(&header.id, "bin", "grpc", 0, &db).await {
+            Ok(data) => data,
+            Err(error) => {
+                eprintln!("{error}");
+                assert!(false);
+                return;
+            }
+        };
+        assert!(updated_header.key == "bin".to_string());
+        assert!(updated_header.value == "grpc".to_string());
+    }
+
+    #[tokio::test]
+    async fn test_get_request_headers() {
+        let db = setup_test_db().await.expect("Cant setup db.");
+
+        let collection = create_collection("Test collection".to_string(), &db.clone())
+            .await
+            .unwrap();
+        let request = create_request(ProtocolTypes::Http, &collection.id, &db.clone())
+            .await
+            .expect("Cant create request");
+
+        let _header = create_request_header(&request.id, "bin", "https", &db)
+            .await
+            .unwrap();
+
+        let headers = get_request_headers(&db, &request.id).await.unwrap();
+        assert!(headers.len() == 1);
+    }
+
+    #[tokio::test]
+    async fn test_delete_request_headers() {
+        let db = setup_test_db().await.expect("Cant setup db.");
+
+        let collection = create_collection("Test collection".to_string(), &db.clone())
+            .await
+            .unwrap();
+        let request = create_request(ProtocolTypes::Http, &collection.id, &db.clone())
+            .await
+            .expect("Cant create request");
+
+        let header = create_request_header(&request.id, "bin", "https", &db)
+            .await
+            .unwrap();
+
+        delete_request_header(&header.id, &db).await.unwrap();
+
+        let headers = get_request_headers(&db, &request.id).await.unwrap();
+        assert!(headers.len() == 0);
     }
 }
