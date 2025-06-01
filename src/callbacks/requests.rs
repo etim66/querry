@@ -5,10 +5,11 @@ use sqlx::SqlitePool;
 
 use crate::{
     utils::crud::requests::{
-        create_request, delete_request, get_collection_requests, update_request_item, HTTPMethods,
-        ProtocolTypes,
+        create_request, create_request_header, delete_request, delete_request_header,
+        get_collection_requests, get_request_headers, update_request_header, update_request_item,
+        HTTPMethods, ProtocolTypes,
     },
-    AppConfig, AppWindow, CollectionItem, RequestItem, SelectedRequestItem,
+    AppConfig, AppWindow, CollectionItem, HeaderItem, RequestItem, SelectedRequestItem,
 };
 
 /// Get requests
@@ -326,6 +327,165 @@ pub async fn mark_selected_request_active(app: &AppWindow) -> Result<(), Box<dyn
         };
 
         cfg.set_active_selected_request(selected_request);
+    });
+
+    Ok(())
+}
+
+/// Get request headers.
+pub async fn process_get_request_headers(
+    db: &SqlitePool,
+    app: &AppWindow,
+) -> Result<(), Box<dyn Error>> {
+    let config = app.global::<AppConfig>();
+    let weak_app = app.as_weak();
+
+    let db_copy = db.clone();
+    config.on_get_request_headers(move |request_id| {
+        let weak_app_for_task = weak_app.clone();
+        let db_copy_for_task = db_copy.clone();
+
+        let _ = slint::spawn_local(async move {
+            let app = weak_app_for_task.upgrade().unwrap();
+            let cfg = app.global::<AppConfig>();
+
+            let headers = match get_request_headers(&db_copy_for_task, &request_id).await {
+                Ok(data) => data,
+                Err(_) => [].to_vec(),
+            };
+
+            let new_headers: Vec<HeaderItem> = headers
+                .iter()
+                .map(|x| HeaderItem {
+                    active: x.active == 1,
+                    id: x.id.clone().into(),
+                    key: x.key.clone().into(),
+                    value: x.value.clone().into(),
+                })
+                .collect();
+
+            cfg.set_request_item_headers(Rc::new(VecModel::from(new_headers)).into());
+        });
+    });
+
+    Ok(())
+}
+
+/// Create request headers.
+pub async fn process_create_request_header(
+    db: &SqlitePool,
+    app: &AppWindow,
+) -> Result<(), Box<dyn Error>> {
+    let config = app.global::<AppConfig>();
+    let weak_app = app.as_weak();
+
+    let db_copy = db.clone();
+    config.on_create_request_header(move |request_id| {
+        let weak_app_for_task = weak_app.clone();
+        let db_copy_for_task = db_copy.clone();
+
+        let _ = slint::spawn_local(async move {
+            let app = weak_app_for_task.upgrade().unwrap();
+            let cfg = app.global::<AppConfig>();
+
+            let header = match create_request_header(&request_id, "", "", &db_copy_for_task).await {
+                Ok(data) => data,
+                Err(_) => return,
+            };
+
+            let mut headers: Vec<HeaderItem> = cfg.get_request_item_headers().iter().collect();
+            headers.push(HeaderItem {
+                active: header.active == 1,
+                id: header.id.into(),
+                key: header.key.into(),
+                value: header.value.into(),
+            });
+
+            cfg.set_request_item_headers(Rc::new(VecModel::from(headers)).into());
+        });
+    });
+
+    Ok(())
+}
+
+/// Update request headers.
+pub async fn process_update_request_header(
+    db: &SqlitePool,
+    app: &AppWindow,
+) -> Result<(), Box<dyn Error>> {
+    let config = app.global::<AppConfig>();
+    let weak_app = app.as_weak();
+
+    let db_copy = db.clone();
+    config.on_update_request_header(move |header_id, key, value, active| {
+        let weak_app_for_task = weak_app.clone();
+        let db_copy_for_task = db_copy.clone();
+
+        let _ = slint::spawn_local(async move {
+            let app = weak_app_for_task.upgrade().unwrap();
+            let cfg = app.global::<AppConfig>();
+
+            let mut processed_active = 0;
+            if active {
+                processed_active = 1;
+            }
+
+            let header = match update_request_header(
+                &header_id,
+                &key,
+                &value,
+                processed_active,
+                &db_copy_for_task,
+            )
+            .await
+            {
+                Ok(data) => data,
+                Err(_) => return,
+            };
+
+            let mut headers: Vec<HeaderItem> = cfg.get_request_item_headers().iter().collect();
+            if let Some(index) = headers.iter().position(|item| item.id == header.id) {
+                let _ = std::mem::replace(
+                    &mut headers[index],
+                    HeaderItem {
+                        active: header.active == 1,
+                        id: header.id.into(),
+                        key: header.key.into(),
+                        value: header.value.into(),
+                    },
+                );
+            }
+
+            cfg.set_request_item_headers(Rc::new(VecModel::from(headers)).into());
+        });
+    });
+
+    Ok(())
+}
+
+/// Remove request headers.
+pub async fn process_remove_request_header(
+    db: &SqlitePool,
+    app: &AppWindow,
+) -> Result<(), Box<dyn Error>> {
+    let config = app.global::<AppConfig>();
+    let weak_app = app.as_weak();
+
+    let db_copy = db.clone();
+    config.on_remove_request_header(move |header_id| {
+        let weak_app_for_task = weak_app.clone();
+        let db_copy_for_task = db_copy.clone();
+
+        let _ = slint::spawn_local(async move {
+            let app = weak_app_for_task.upgrade().unwrap();
+            let cfg = app.global::<AppConfig>();
+
+            if (delete_request_header(&header_id, &db_copy_for_task).await).is_ok() {};
+
+            let mut headers: Vec<HeaderItem> = cfg.get_request_item_headers().iter().collect();
+            headers.retain(|item| item.id != header_id);
+            cfg.set_request_item_headers(Rc::new(VecModel::from(headers)).into());
+        });
     });
 
     Ok(())
