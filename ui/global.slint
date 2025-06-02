@@ -50,6 +50,14 @@ export struct IconsModel {
 }
 
 
+export struct HeaderItem {
+    id: string,
+    key: string,
+    value: string,
+    active: bool,
+}
+
+
 export global AppConfig {
     // System.
     in-out property <int> page: 1;
@@ -92,4 +100,11 @@ export global AppConfig {
     callback add_selected_request(int, int); // request_index, collection_index
     callback remove_selected_request(int); // index
     callback mark_request_active(int); // make a selected request active. index
+
+    // Request headers
+    callback get_request_headers(string); // request_id
+    callback create_request_header(string); // header_id
+    callback update_request_header(string, string, string, bool); // header_id, key, value, active
+    callback remove_request_header(string); // header_id
+    in-out property <[HeaderItem]> request_item_headers: [];
 }

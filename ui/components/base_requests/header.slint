@@ -1,0 +1,266 @@
+import { VerticalBox, ListView, CheckBox } from "std-widgets.slint";
+import { Theme } from "../../theme.slint";
+import { AppConfig, HeaderItem } from "../../global.slint";
+
+
+component TableView inherits Rectangle {
+    in-out property <[HeaderItem]> headers: AppConfig.request_item_headers;
+    in property <[string]> columns;
+    in-out property <string> request_id: AppConfig.active_selected_request.item.id;
+
+    private property <length> e: self.width / root.columns.length;
+    private property <[length]> column_sizes: [
+        root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e,
+        root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e,
+        root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e, root.e,
+    ];
+
+    VerticalBox {
+        padding: 5px;
+        HorizontalLayout {
+            padding: 5px; spacing: 5px;
+            vertical-stretch: 0;
+            // Iterate over columns to create headers
+            for title[idx] in root.columns : HorizontalLayout {
+                width: title == "" ? 50px : root.column_sizes[idx];
+
+                Text {
+                    overflow: elide;
+                    text: title;
+                    color: Theme.label_text_color;
+                    font-size: Theme.label_font_size_medium_small;
+                }
+
+                if (idx < 2):
+                    Rectangle {
+                        width: 1px;
+                        background: gray;
+                        TouchArea {
+                            width: 10px;
+                            x: (parent.width - self.width) / 2;
+                            property <length> cached;
+                            pointer-event(event) => {
+                                if (event.button == PointerEventButton.left && event.kind == PointerEventKind.down) {
+                                    self.cached = root.column_sizes[idx];
+                                }
+                            }
+                            moved => {
+                                if (self.pressed) {
+                                    root.column_sizes[idx] += (self.mouse-x - self.pressed-x);
+                                    if (root.column_sizes[idx] < 50px) {
+                                        root.column_sizes[idx] = 50px;
+                                    }
+                                }
+                            }
+                            mouse-cursor: ew-resize;
+                        }
+                    }
+            }
+        }
+        ListView {
+            for header[index] in root.headers : HorizontalLayout {
+                in-out property <bool> key_edit_mode: false;
+                in-out property <bool> value_edit_mode: false;
+
+                padding: 5px;
+                spacing: 5px;
+
+                VerticalLayout {
+                    width: 50px;
+                    alignment: center;
+                    Rectangle {
+                        background: Theme.dark_theme ? Theme.app_background_color.darker(-60%) : Theme.app_background_color.darker(30%);
+                        width: 25px;
+                        border-radius: 4px;
+                        height: 25px;
+
+                        if header.key != "" && header.value != "":
+                            CheckBox {
+                                checked: header.active;
+                                toggled => {
+                                    header.active = !header.active;
+                                    AppConfig.update_request_header(
+                                        header.id,
+                                        header.key,
+                                        header.value,
+                                        header.active
+                                    );
+                                }
+                            }
+                            
+                        
+                        if !(header.key != "" && header.value != ""):
+                            image := Image {
+                                source: @image-url("../../icons/close.svg");
+                                colorize: red;
+                                opacity: 0.5;
+                                width: 22px;
+
+                                TouchArea {
+                                    mouse-cursor: self.has-hover ? pointer: default;
+                                    clicked => {
+                                        AppConfig.remove_request_header(header.id)
+                                    }
+                                }
+                            }
+                    }
+                    
+                }
+                
+                HorizontalLayout {
+                    width: root.column_sizes[1];
+                    if parent.key_edit_mode:
+                        Rectangle {
+                            width: 100%;
+                            border-radius: Theme.border_radius;
+
+                            TextInput {
+                                horizontal-stretch: 1;
+                                color: Theme.label_text_color;
+                                vertical-alignment: center;
+                                wrap: no-wrap; 
+                                text: header.key;
+                                width: 100%;
+                                font-size: Theme.label_font_size_medium_small;
+    
+                                accepted() => {
+                                    AppConfig.update_request_header(
+                                        header.id,
+                                        self.text,
+                                        header.value,
+                                        header.active
+                                    );
+                                    key_edit_mode = !key_edit_mode;
+                                }
+                            }
+
+                            
+                        }
+                        
+                    
+                    if !parent.key_edit_mode:
+                        Text { 
+                            overflow: elide; 
+                            text: header.key;
+                            color: Theme.label_text_color;
+                            font-size: Theme.label_font_size_medium_small;
+                            vertical-alignment: center;
+
+                            TouchArea {
+                                mouse-cursor: self.has-hover ? pointer: default;
+                                clicked => {
+                                    key_edit_mode = true;
+                                }
+                            }
+                        }
+                }
+                HorizontalLayout {
+                    width: root.column_sizes[2];
+                    if parent.value_edit_mode:
+                        Rectangle {
+                            width: 100%;
+                            border-radius: Theme.border_radius;
+
+                            TextInput {
+                                color: Theme.label_text_color;
+                                vertical-alignment: center;
+                                wrap: no-wrap; 
+                                text: header.value;
+                                width: 100%;
+                                font-size: Theme.label_font_size_medium_small;
+    
+                                accepted() => {
+                                    AppConfig.update_request_header(
+                                        header.id,
+                                        header.key,
+                                        self.text,
+                                        header.active
+                                    );
+                                    value_edit_mode = !value_edit_mode;
+                                }
+    
+                            }
+                            
+                        }
+                    
+                    if !parent.value_edit_mode:
+                        Text {
+                            overflow: elide;
+                            text: header.value;
+                            color: Theme.label_text_color;
+                            font-size: Theme.label_font_size_medium_small;
+                            vertical-alignment: center;
+
+                            TouchArea {
+                                clicked => {
+                                    value_edit_mode = true;
+                                }
+                            }
+                        }
+                }
+            }
+        }
+    }
+}
+
+export component HeadersComponent inherits Rectangle {
+    background: Theme.app_background_color;
+    in-out property <string> request_id: AppConfig.active_selected_request.item.id;
+
+    VerticalLayout {
+        Rectangle {
+            background: Theme.dark_theme ? Theme.app_background_color.darker(-30%) : Theme.app_background_color.darker(30%);
+            height: 40px;
+
+            HorizontalLayout {
+                alignment: space-between;
+                padding-left: 15px;
+                padding-right: 15px;
+                Text {
+                    color: Theme.label_text_color;
+                    font-size: Theme.label_font_size_medium_small;
+                    text: "Headers list";
+                    opacity: 0.5;
+                    vertical-alignment: center;
+                }
+        
+                VerticalLayout {
+                    alignment: center;
+                    Rectangle {
+                        
+                        width: Theme.icon_box_with - 5px;
+                        height: Theme.icon_box_with - 5px;
+                                
+                        image := Image {
+                            source: @image-url("../../icons/add.svg");
+                            colorize: Theme.icon_color;
+                            opacity: 0.5;
+                        }
+        
+                        touch := TouchArea {
+                            mouse-cursor: self.has-hover ? pointer : default;
+                            clicked => {
+                                AppConfig.create_request_header(root.request_id)
+                            }
+                        }
+                    }
+                }
+        
+        
+            }
+        }
+    
+        Rectangle {
+            width: 100%;
+            height: 1px;
+            border-color: Theme.border_color;
+            border-width: 1px;
+        }
+    
+        TableView {
+           columns: ["", "Key", "Value"];
+       }
+    }
+
+    
+}

@@ -30,6 +30,7 @@ pub async fn setup_test_db() -> Result<SqlitePool, Box<dyn Error>> {
         DROP TABLE IF EXISTS collectionheader;
         DROP TABLE IF EXISTS requestitem;
         DROP TABLE IF EXISTS _sqlx_migrations;  
+        DROP TABLE IF EXISTS requestheader;
         "#,
     )
     .execute(&pool)
