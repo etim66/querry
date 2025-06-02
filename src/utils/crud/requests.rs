@@ -217,7 +217,7 @@ pub async fn get_request_headers(
     pool: &SqlitePool,
     request_id: &str,
 ) -> Result<Vec<RequestHeaderData>, Box<dyn Error>> {
-    let headers = query_as("SELECT id, key, value, active FROM requestheader WHERE request_id=$1 ORDER BY created_at DESC").bind(request_id).fetch_all(pool).await?;
+    let headers = query_as("SELECT id, key, value, active FROM requestheader WHERE request_id=$1 ORDER BY created_at ASC").bind(request_id).fetch_all(pool).await?;
 
     Ok(headers)
 }
