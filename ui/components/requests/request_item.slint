@@ -16,6 +16,7 @@ export component RequestComponent inherits Rectangle {
     touch-area := TouchArea {
         clicked => {
             AppConfig.add_selected_request(index, collection_index);
+            AppConfig.get_request_headers(id);
         }
     }
 

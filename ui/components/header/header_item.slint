@@ -20,9 +20,8 @@ export component HeaderItem inherits Rectangle {
         clicked => {
             root.request-focus-parent();
             AppConfig.mark_request_active(index);
+            AppConfig.get_request_headers(id);
             AppConfig.show_request_section = true;
-
-            debug(AppConfig.active_selected_request.item.url, AppConfig.active_selected_request.item.name)
         }
     }
 

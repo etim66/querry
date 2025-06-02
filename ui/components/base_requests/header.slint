@@ -1,15 +1,12 @@
 import { VerticalBox, ListView, CheckBox } from "std-widgets.slint";
 import { Theme } from "../../theme.slint";
+import { AppConfig, HeaderItem } from "../../global.slint";
 
-struct TableRowData {
-    active: bool,
-    key: string,
-    value: string
-}
 
 component TableView inherits Rectangle {
-    in-out property <[TableRowData]> values;
+    in-out property <[HeaderItem]> headers: AppConfig.request_item_headers;
     in property <[string]> columns;
+    in-out property <string> request_id: AppConfig.active_selected_request.item.id;
 
     private property <length> e: self.width / root.columns.length;
     private property <[length]> column_sizes: [
@@ -26,6 +23,7 @@ component TableView inherits Rectangle {
             // Iterate over columns to create headers
             for title[idx] in root.columns : HorizontalLayout {
                 width: title == "" ? 50px : root.column_sizes[idx];
+
                 Text {
                     overflow: elide;
                     text: title;
@@ -60,7 +58,10 @@ component TableView inherits Rectangle {
             }
         }
         ListView {
-            for row[row_idx] in root.values : HorizontalLayout {
+            for header[index] in root.headers : HorizontalLayout {
+                in-out property <bool> key_edit_mode: false;
+                in-out property <bool> value_edit_mode: false;
+
                 padding: 5px;
                 spacing: 5px;
 
@@ -73,13 +74,35 @@ component TableView inherits Rectangle {
                         border-radius: 4px;
                         height: 25px;
 
-                        CheckBox {
-                            checked: row.active;
-                            toggled => {
-                                root.values[row_idx].active = !row.active;
+                        if header.key != "" && header.value != "":
+                            CheckBox {
+                                checked: header.active;
+                                toggled => {
+                                    header.active = !header.active;
+                                    AppConfig.update_request_header(
+                                        header.id,
+                                        header.key,
+                                        header.value,
+                                        header.active
+                                    );
+                                }
                             }
                             
-                        }
+                        
+                        if !(header.key != "" && header.value != ""):
+                            image := Image {
+                                source: @image-url("../../icons/close.svg");
+                                colorize: red;
+                                opacity: 0.5;
+                                width: 22px;
+
+                                TouchArea {
+                                    mouse-cursor: self.has-hover ? pointer: default;
+                                    clicked => {
+                                        AppConfig.remove_request_header(header.id)
+                                    }
+                                }
+                            }
                     }
                     
                 }
@@ -87,23 +110,94 @@ component TableView inherits Rectangle {
 
                 HorizontalLayout {
                     width: root.column_sizes[1];
-                    Text { 
-                        overflow: elide; 
-                        text: row.key;
-                        color: Theme.label_text_color;
-                        font-size: Theme.label_font_size_medium_small;
-                        vertical-alignment: center;
-                    }
+                    if parent.key_edit_mode:
+                        Rectangle {
+                            width: 100%;
+                            border-radius: Theme.border_radius;
+
+                            TextInput {
+                                horizontal-stretch: 1;
+                                color: Theme.label_text_color;
+                                vertical-alignment: center;
+                                wrap: no-wrap; 
+                                text: header.key;
+                                width: 100%;
+                                font-size: Theme.label_font_size_medium_small;
+    
+                                accepted() => {
+                                    AppConfig.update_request_header(
+                                        header.id,
+                                        self.text,
+                                        header.value,
+                                        header.active
+                                    );
+                                    key_edit_mode = !key_edit_mode;
+                                }
+                            }
+
+                            
+                        }
+                        
+                    
+                    if !parent.key_edit_mode:
+                        Text { 
+                            overflow: elide; 
+                            text: header.key;
+                            color: Theme.label_text_color;
+                            font-size: Theme.label_font_size_medium_small;
+                            vertical-alignment: center;
+
+                            TouchArea {
+                                mouse-cursor: self.has-hover ? pointer: default;
+                                clicked => {
+                                    key_edit_mode = true;
+                                }
+                            }
+                        }
                 }
                 HorizontalLayout {
                     width: root.column_sizes[2];
-                    Text {
-                        overflow: elide;
-                        text: row.value;
-                        color: Theme.label_text_color;
-                        font-size: Theme.label_font_size_medium_small;
-                        vertical-alignment: center;
-                    }
+                    if parent.value_edit_mode:
+                        Rectangle {
+                            width: 100%;
+                            border-radius: Theme.border_radius;
+
+                            TextInput {
+                                color: Theme.label_text_color;
+                                vertical-alignment: center;
+                                wrap: no-wrap; 
+                                text: header.value;
+                                width: 100%;
+                                font-size: Theme.label_font_size_medium_small;
+    
+                                accepted() => {
+                                    AppConfig.update_request_header(
+                                        header.id,
+                                        header.key,
+                                        self.text,
+                                        header.active
+                                    );
+                                    value_edit_mode = !value_edit_mode;
+                                }
+    
+                            }
+                            
+                        }
+                    
+                    if !parent.value_edit_mode:
+                        Text {
+                            overflow: elide;
+                            text: header.value;
+                            color: Theme.label_text_color;
+                            font-size: Theme.label_font_size_medium_small;
+                            vertical-alignment: center;
+
+                            TouchArea {
+                                clicked => {
+                                    value_edit_mode = true;
+                                }
+                            }
+                        }
                 }
             }
         }
@@ -112,6 +206,7 @@ component TableView inherits Rectangle {
 
 export component HeadersComponent inherits Rectangle {
     background: Theme.app_background_color;
+    in-out property <string> request_id: AppConfig.active_selected_request.item.id;
 
     VerticalLayout {
         Rectangle {
@@ -146,6 +241,7 @@ export component HeadersComponent inherits Rectangle {
                         touch := TouchArea {
                             mouse-cursor: self.has-hover ? pointer : default;
                             clicked => {
+                                AppConfig.create_request_header(root.request_id)
                             }
                         }
                     }
@@ -163,12 +259,7 @@ export component HeadersComponent inherits Rectangle {
         }
     
         TableView {
-           // Add "Selected" to your column headers
            columns: ["", "Key", "Value"];
-           values: [
-                { active: false, key: "content-type", value: "json" },
-                { active: false, key: "authorization", value: "bearer" },
-           ];
        }
     }
 
