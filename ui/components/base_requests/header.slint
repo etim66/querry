@@ -29,6 +29,7 @@ component TableView inherits Rectangle {
                     text: title;
                     color: Theme.label_text_color;
                     font-size: Theme.label_font_size_medium_small;
+                    opacity: Theme.text_opacity;
                 }
 
                 if (idx < 2):
@@ -112,7 +113,8 @@ component TableView inherits Rectangle {
                     if parent.key_edit_mode:
                         Rectangle {
                             width: 100%;
-                            border-radius: Theme.border_radius;
+                            border-radius: 2px;
+                            background: Theme.dark_theme ? Theme.app_background_color.darker(-50%) : Theme.app_background_color.darker(50%);
 
                             TextInput {
                                 horizontal-stretch: 1;
@@ -122,6 +124,7 @@ component TableView inherits Rectangle {
                                 text: header.key;
                                 width: 100%;
                                 font-size: Theme.label_font_size_medium_small;
+                                opacity: Theme.text_opacity;
     
                                 accepted() => {
                                     AppConfig.update_request_header(
@@ -145,6 +148,7 @@ component TableView inherits Rectangle {
                             color: Theme.label_text_color;
                             font-size: Theme.label_font_size_medium_small;
                             vertical-alignment: center;
+                            opacity: Theme.text_opacity;
 
                             TouchArea {
                                 mouse-cursor: self.has-hover ? pointer: default;
@@ -158,16 +162,18 @@ component TableView inherits Rectangle {
                     width: root.column_sizes[2];
                     if parent.value_edit_mode:
                         Rectangle {
-                            width: 100%;
-                            border-radius: Theme.border_radius;
+                            border-radius: 2px;
+                            background: Theme.dark_theme ? Theme.app_background_color.darker(-50%) : Theme.app_background_color.darker(50%);
+                            padding: 10px;
 
-                            TextInput {
+                            text := TextInput {
                                 color: Theme.label_text_color;
                                 vertical-alignment: center;
                                 wrap: no-wrap; 
                                 text: header.value;
                                 width: 100%;
                                 font-size: Theme.label_font_size_medium_small;
+                                opacity: Theme.text_opacity;
     
                                 accepted() => {
                                     AppConfig.update_request_header(
@@ -190,6 +196,7 @@ component TableView inherits Rectangle {
                             color: Theme.label_text_color;
                             font-size: Theme.label_font_size_medium_small;
                             vertical-alignment: center;
+                            opacity: Theme.text_opacity;
 
                             TouchArea {
                                 clicked => {
