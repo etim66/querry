@@ -54,7 +54,7 @@ export component BaseRequests inherits Rectangle {
                 }
 
                 Text {
-                    text: "(3)";
+                    text: " (\{AppConfig.request_item_headers.length})";
                     color: green;
                     font-size: Theme.label_font_size_medium_small;
                     opacity: root.active_tab == headers.text ? 1 : Theme.text_opacity;
