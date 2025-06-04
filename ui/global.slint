@@ -58,6 +58,14 @@ export struct HeaderItem {
 }
 
 
+export struct AuthorizationItem {
+    id: string,
+    auth_type: string,
+    token: string,
+    prefix: bool,
+}
+
+
 export global AppConfig {
     // System.
     in-out property <int> page: 1;
@@ -107,4 +115,9 @@ export global AppConfig {
     callback update_request_header(string, string, string, bool); // header_id, key, value, active
     callback remove_request_header(string); // header_id
     in-out property <[HeaderItem]> request_item_headers: [];
+
+    // Request Authorization.
+    in-out property <[AuthorizationItem]> request_auth_items: [];
+    callback get_request_auth(string); // request_id
+    callback update_request_auth(string, string, string, string); // request_id, auth_type, token, prefix
 }

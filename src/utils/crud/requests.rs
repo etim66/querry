@@ -133,7 +133,7 @@ pub async fn create_request(
     collection_id: &str,
     pool: &SqlitePool,
 ) -> Result<RequestData, Box<dyn Error>> {
-    let request = query_as(
+    let request: RequestData = query_as(
         "INSERT INTO requestitem (id, name, protocol, http_method, collection_id, url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, url, protocol, http_method, collection_id"
     ).bind(Uuid::new_v4().to_string()).bind("New Request").bind(protocol.to_string()).bind(HTTPMethods::Get.to_string()).bind(collection_id).bind("").fetch_one(pool).await?;
 
@@ -147,6 +147,17 @@ pub async fn create_request(
         pool,
     )
     .await?;
+
+    // Create default authorization item.
+    let _auth = create_request_authorization(
+        &request.id,
+        &AuthorizationTypes::None.to_string(),
+        "",
+        "",
+        pool,
+    )
+    .await?;
+
     Ok(request)
 }
 
