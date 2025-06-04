@@ -5,12 +5,25 @@ use sqlx::SqlitePool;
 
 use crate::{
     utils::crud::requests::{
-        create_request, create_request_header, delete_request, delete_request_header,
-        get_collection_requests, get_request_headers, update_request_header, update_request_item,
-        HTTPMethods, ProtocolTypes,
+        create_request, create_request_authorization, create_request_header, delete_request,
+        delete_request_header, get_collection_requests, get_request_authorization,
+        get_request_headers, update_request_header, update_request_item, AuthorizationTypes,
+        HTTPMethods, ProtocolTypes, RequestAuthorizationData,
     },
-    AppConfig, AppWindow, CollectionItem, HeaderItem, RequestItem, SelectedRequestItem,
+    AppConfig, AppWindow, AuthorizationItem, CollectionItem, HeaderItem, RequestItem,
+    SelectedRequestItem,
 };
+
+impl From<RequestAuthorizationData> for AuthorizationItem {
+    fn from(item: RequestAuthorizationData) -> Self {
+        AuthorizationItem {
+            id: item.id.into(),
+            auth_type: item.auth_type.into(),
+            token: item.token.into(),
+            prefix: item.prefix.into(),
+        }
+    }
+}
 
 /// Get requests
 pub async fn process_get_requests(db: &SqlitePool, app: &AppWindow) -> Result<(), Box<dyn Error>> {
@@ -355,12 +368,12 @@ pub async fn process_get_request_headers(
             };
 
             let new_headers: Vec<HeaderItem> = headers
-                .iter()
+                .into_iter()
                 .map(|x| HeaderItem {
                     active: x.active == 1,
-                    id: x.id.clone().into(),
-                    key: x.key.clone().into(),
-                    value: x.value.clone().into(),
+                    id: x.id.into(),
+                    key: x.key.into(),
+                    value: x.value.into(),
                 })
                 .collect();
 
@@ -485,6 +498,86 @@ pub async fn process_remove_request_header(
             let mut headers: Vec<HeaderItem> = cfg.get_request_item_headers().iter().collect();
             headers.retain(|item| item.id != header_id);
             cfg.set_request_item_headers(Rc::new(VecModel::from(headers)).into());
+        });
+    });
+
+    Ok(())
+}
+
+/// Get request auth.
+pub async fn process_get_request_authorization(
+    db: &SqlitePool,
+    app: &AppWindow,
+) -> Result<(), Box<dyn Error>> {
+    let config = app.global::<AppConfig>();
+    let weak_app = app.as_weak();
+
+    let db_copy = db.clone();
+    config.on_get_request_auth(move |request_id| {
+        let weak_app_for_task = weak_app.clone();
+        let db_copy_for_task = db_copy.clone();
+
+        let _ = slint::spawn_local(async move {
+            let app = weak_app_for_task.upgrade().unwrap();
+            let cfg = app.global::<AppConfig>();
+
+            let authorization =
+                match get_request_authorization(&db_copy_for_task, &request_id).await {
+                    Ok(data) => data,
+                    Err(_) => [].to_vec(),
+                };
+
+            let new_authorization: Vec<AuthorizationItem> = authorization
+                .into_iter()
+                .map(AuthorizationItem::from)
+                .collect();
+
+            cfg.set_request_auth_items(Rc::new(VecModel::from(new_authorization)).into());
+        });
+    });
+
+    Ok(())
+}
+
+/// Get request auth.
+pub async fn process_update_request_authorization(
+    db: &SqlitePool,
+    app: &AppWindow,
+) -> Result<(), Box<dyn Error>> {
+    let config = app.global::<AppConfig>();
+    let weak_app = app.as_weak();
+
+    let db_copy = db.clone();
+    config.on_update_request_auth(move |request_id, auth_type, token, prefix| {
+        let weak_app_for_task = weak_app.clone();
+        let db_copy_for_task = db_copy.clone();
+
+        let _ = slint::spawn_local(async move {
+            let app = weak_app_for_task.upgrade().unwrap();
+            let cfg = app.global::<AppConfig>();
+
+            let validated_auth_type = AuthorizationTypes::from_string(&auth_type)
+                .unwrap_or(AuthorizationTypes::None)
+                .to_string();
+            let authorization = match create_request_authorization(
+                &request_id,
+                &validated_auth_type,
+                &token,
+                &prefix,
+                &db_copy_for_task,
+            )
+            .await
+            {
+                Ok(data) => [data].to_vec(),
+                Err(_) => [].to_vec(),
+            };
+
+            let new_authorization: Vec<AuthorizationItem> = authorization
+                .into_iter()
+                .map(AuthorizationItem::from)
+                .collect();
+
+            cfg.set_request_auth_items(Rc::new(VecModel::from(new_authorization)).into());
         });
     });
 

@@ -13,9 +13,10 @@ use lib::{
         images::process_get_images,
         requests::{
             mark_selected_request_active, process_create_request_header, process_create_requests,
-            process_delete_request, process_get_request_headers, process_get_requests,
-            process_remove_request_header, process_request_remove, process_request_selection,
-            process_update_request, process_update_request_header,
+            process_delete_request, process_get_request_authorization, process_get_request_headers,
+            process_get_requests, process_remove_request_header, process_request_remove,
+            process_request_selection, process_update_request,
+            process_update_request_authorization, process_update_request_header,
         },
     },
     database::get_database,
@@ -49,6 +50,11 @@ async fn main() -> Result<(), PlatformError> {
     process_create_request_header(&db, &app).await.unwrap();
     process_update_request_header(&db, &app).await.unwrap();
     process_remove_request_header(&db, &app).await.unwrap();
+
+    process_get_request_authorization(&db, &app).await.unwrap();
+    process_update_request_authorization(&db, &app)
+        .await
+        .unwrap();
 
     let size: PhysicalSize = PhysicalSize::new(1920, 1080);
     app.set_window_height(size.height as f32);
