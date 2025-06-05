@@ -17,6 +17,7 @@ export component RequestComponent inherits Rectangle {
         clicked => {
             AppConfig.add_selected_request(index, collection_index);
             AppConfig.get_request_headers(id);
+            AppConfig.get_request_auth(id);
         }
     }
 

@@ -1,0 +1,161 @@
+import { ComboBox } from "std-widgets.slint";
+
+import { Theme } from "../../theme.slint";
+import { AppConfig, AuthorizationItem } from "../../global.slint";
+
+export component AuthorizationComponent inherits Rectangle {
+    background: Theme.app_background_color;
+    in-out property <string> request_id: AppConfig.active_selected_request.item.id;
+    in-out property <AuthorizationItem> authorization: AppConfig.request_auth_items[0];
+    in-out property <string> authorization_type;
+
+    init => {
+        if authorization.auth-type == "none" {
+            root.authorization_type = "None"
+        } else {
+            root.authorization_type = "Bearer Token"
+        }
+    }
+
+    VerticalLayout {
+        spacing: 15px;
+        VerticalLayout {
+            Rectangle {
+                background: Theme.dark_theme ? Theme.app_background_color.darker(-30%) : Theme.app_background_color.darker(30%);
+                height: 40px;
+                padding-left: 15px;
+                width: 100%;
+                Text {
+                    color: Theme.label_text_color;
+                    font-size: Theme.label_font_size_medium_small;
+                    text: "Authorization";
+                    opacity: 0.5;
+    
+                    vertical-alignment: center;
+                }
+            }
+    
+            Rectangle {
+                width: 100%;
+                height: 1px;
+                border-color: Theme.border_color;
+                border-width: 1px;
+            }
+        }
+
+        HorizontalLayout {
+            alignment: center;
+
+            ComboBox {
+                width: 140px;
+                height: 40px;
+
+                model: ["None", "Bearer Token"];
+                current-value: root.authorization_type;
+
+                selected(value) => {
+                    if value == "None" {
+                        AppConfig.update_request_auth(request_id, "none", "", "");
+                    } else {
+                        AppConfig.update_request_auth(request_id, "bearer_token", authorization.token, authorization.prefix);
+                    }
+                }
+            }
+
+        }
+
+
+        if root.authorization.auth-type == "bearer_token":
+            VerticalLayout {
+                spacing: 15px;
+                padding-left: 10px;
+                padding-right: 10px;
+
+                Rectangle {
+                    width: 100%;
+                    padding: 5px;
+                    height: 40px;
+                    background: Theme.dark_theme ? Theme.app_background_color.darker(-50%) : Theme.app_background_color.darker(50%);
+                    border-radius: Theme.border_radius;
+
+                    prefix := TextInput {
+                        width: 100%;
+                        color: Theme.label_text_color;
+                        vertical-alignment: center;
+                        wrap: no-wrap; 
+                        text: authorization.prefix;
+                        font-size: Theme.label_font_size_medium_small;
+                        opacity: Theme.text_opacity;
+        
+                        init => {
+                            if (self.text == "" && !self.has-focus) {
+                                self.text = "Prefix";
+                                self.opacity = 0.5;
+                            }
+                        }
+                        changed has-focus => {
+                            if self.text == "Prefix" {
+                                self.text = "";
+                                self.opacity = Theme.text_opacity;
+                            }
+                        }
+        
+                        edited => {
+                            if self.text != "Prefix" {
+                                AppConfig.update_request_auth(request_id, "bearer_token", authorization.token, self.text);
+                            }
+                        }
+    
+                        accepted => {
+                            self.clear-focus()
+                        }
+                    }
+                }
+    
+                Rectangle {
+                    width: 100%;
+                    padding: 5px;
+                    height: 40px;
+                    background: Theme.dark_theme ? Theme.app_background_color.darker(-50%) : Theme.app_background_color.darker(50%);
+                    border-radius: Theme.border_radius;
+
+                    token := TextInput {
+                        width: 100%;
+                        color: Theme.label_text_color;
+                        vertical-alignment: center;
+                        wrap: no-wrap; 
+                        text: authorization.token;
+                        font-size: Theme.label_font_size_medium_small;
+                        opacity: Theme.text_opacity;
+        
+                        init => {
+                            if (self.text == "" && !self.has-focus) {
+                                self.text = "Token";
+                                self.opacity = 0.5;
+                            }
+                        }
+                        changed has-focus => {
+                            if self.text == "Token" {
+                                self.text = "";
+                                self.opacity = Theme.text_opacity;
+                            }
+                        }
+        
+                        edited => {
+                            if self.text != "Token" {
+                                AppConfig.update_request_auth(request_id, "bearer_token", self.text, authorization.prefix);
+                            }
+                        }
+    
+                        accepted => {
+                            self.clear-focus()
+                        }
+                    }    
+                }
+            }
+            
+            
+
+    }
+
+}

@@ -21,6 +21,7 @@ export component HeaderItem inherits Rectangle {
             root.request-focus-parent();
             AppConfig.mark_request_active(index);
             AppConfig.get_request_headers(id);
+            AppConfig.get_request_auth(id);
             AppConfig.show_request_section = true;
         }
     }
