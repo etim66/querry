@@ -15,6 +15,8 @@ export component AuthorizationComponent inherits Rectangle {
         } else {
             root.authorization_type = "Bearer Token"
         }
+
+        combo.current-value = root.authorization_type;
     }
 
     changed authorization => {
@@ -23,6 +25,8 @@ export component AuthorizationComponent inherits Rectangle {
         } else {
             root.authorization_type = "Bearer Token"
         }
+
+        combo.current-value = root.authorization_type;
     }
 
     VerticalLayout {
@@ -60,9 +64,10 @@ export component AuthorizationComponent inherits Rectangle {
         }
 
         HorizontalLayout {
-            alignment: center;
+            alignment: start;
+            padding-left: 10px;
 
-            ComboBox {
+            combo := ComboBox {
                 width: 140px;
                 height: 40px;
 
