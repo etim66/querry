@@ -33,3 +33,12 @@ CREATE TABLE IF NOT EXISTS requestheader(
     active INTEGER NOT NULL DEFAULT 1, -- Boolean field (0 for false, 1 for true)
     request_id TEXT NOT NULL REFERENCES requestitem(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS requestauthorization(
+    id TEXT NOT NULL PRIMARY KEY,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    auth_type TEXT,
+    token TEXT,
+    prefix TEXT,
+    request_id TEXT NOT NULL REFERENCES requestitem(id) ON DELETE CASCADE
+);

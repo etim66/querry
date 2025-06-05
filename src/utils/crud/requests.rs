@@ -68,6 +68,31 @@ impl HTTPMethods {
     }
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum AuthorizationTypes {
+    None,
+    BearerToken,
+}
+
+impl fmt::Display for AuthorizationTypes {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            AuthorizationTypes::None => write!(f, "none"),
+            AuthorizationTypes::BearerToken => write!(f, "bearer_token"),
+        }
+    }
+}
+
+impl AuthorizationTypes {
+    pub fn from_string(s: &str) -> Option<AuthorizationTypes> {
+        match s {
+            "none" => Some(AuthorizationTypes::None),
+            "bearer_token" => Some(AuthorizationTypes::BearerToken),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Debug, FromRow)]
 pub struct RequestData {
     pub id: String,
@@ -86,6 +111,14 @@ pub struct RequestHeaderData {
     pub active: u8,
 }
 
+#[derive(Clone, Debug, FromRow)]
+pub struct RequestAuthorizationData {
+    pub id: String,
+    pub auth_type: String,
+    pub token: String,
+    pub prefix: String,
+}
+
 pub async fn get_collection_requests(
     pool: &SqlitePool,
     collection_id: &str,
@@ -100,7 +133,7 @@ pub async fn create_request(
     collection_id: &str,
     pool: &SqlitePool,
 ) -> Result<RequestData, Box<dyn Error>> {
-    let request = query_as(
+    let request: RequestData = query_as(
         "INSERT INTO requestitem (id, name, protocol, http_method, collection_id, url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, url, protocol, http_method, collection_id"
     ).bind(Uuid::new_v4().to_string()).bind("New Request").bind(protocol.to_string()).bind(HTTPMethods::Get.to_string()).bind(collection_id).bind("").fetch_one(pool).await?;
 
@@ -114,6 +147,17 @@ pub async fn create_request(
         pool,
     )
     .await?;
+
+    // Create default authorization item.
+    let _auth = create_request_authorization(
+        &request.id,
+        &AuthorizationTypes::None.to_string(),
+        "",
+        "",
+        pool,
+    )
+    .await?;
+
     Ok(request)
 }
 
@@ -232,6 +276,56 @@ pub async fn delete_request_header(
         .await?;
 
     Ok(())
+}
+
+pub async fn get_request_authorization(
+    pool: &SqlitePool,
+    request_id: &str,
+) -> Result<Vec<RequestAuthorizationData>, Box<dyn Error>> {
+    let authorization = query_as(
+        "SELECT id, auth_type, token, prefix FROM requestauthorization WHERE request_id=$1",
+    )
+    .bind(request_id)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(authorization)
+}
+
+pub async fn delete_request_authorization(
+    request_id: &str,
+    pool: &SqlitePool,
+) -> Result<(), Box<dyn Error>> {
+    query("DELETE FROM requestauthorization WHERE request_id=$1")
+        .bind(request_id)
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}
+
+pub async fn create_request_authorization(
+    request_id: &str,
+    auth_type: &str,
+    token: &str,
+    prefix: &str,
+    pool: &SqlitePool,
+) -> Result<RequestAuthorizationData, Box<dyn Error>> {
+    // Delete existing authorization.
+    delete_request_authorization(request_id, pool).await?;
+
+    // Add new authorization.
+    let command = "INSERT INTO requestauthorization (id, auth_type, token, prefix, request_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, auth_type, token, prefix";
+    let header: RequestAuthorizationData = query_as(command)
+        .bind(Uuid::new_v4().to_string())
+        .bind(auth_type)
+        .bind(token)
+        .bind(prefix)
+        .bind(request_id)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(header)
 }
 
 #[cfg(test)]
@@ -434,5 +528,68 @@ mod tests {
 
         let headers = get_request_headers(&db, &request.id).await.unwrap();
         assert!(headers.len() == 0);
+    }
+
+    #[tokio::test]
+    async fn test_create_request_auth() {
+        let db = setup_test_db().await.expect("Cant setup db.");
+
+        let collection = create_collection("Test collection".to_string(), &db.clone())
+            .await
+            .unwrap();
+        let request = create_request(ProtocolTypes::Http, &collection.id, &db.clone())
+            .await
+            .expect("Cant create request");
+
+        let auth = create_request_authorization(
+            &request.id,
+            &AuthorizationTypes::BearerToken.to_string(),
+            "token",
+            "bearer",
+            &db,
+        )
+        .await
+        .unwrap();
+
+        let auth_items = get_request_authorization(&db, &request.id).await.unwrap();
+        assert!(auth_items.len() == 1);
+        assert!(auth_items[0].id == auth.id);
+    }
+
+    #[tokio::test]
+    async fn test_delete_request_auth() {
+        // Creating a new auth deletes tje old one.
+        let db = setup_test_db().await.expect("Cant setup db.");
+
+        let collection = create_collection("Test collection".to_string(), &db.clone())
+            .await
+            .unwrap();
+        let request = create_request(ProtocolTypes::Http, &collection.id, &db.clone())
+            .await
+            .expect("Cant create request");
+
+        let _auth = create_request_authorization(
+            &request.id,
+            &AuthorizationTypes::BearerToken.to_string(),
+            "token",
+            "bearer",
+            &db,
+        )
+        .await
+        .unwrap();
+
+        let auth = create_request_authorization(
+            &request.id,
+            &AuthorizationTypes::None.to_string(),
+            "",
+            "",
+            &db,
+        )
+        .await
+        .unwrap();
+
+        let auth_items = get_request_authorization(&db, &request.id).await.unwrap();
+        assert!(auth_items.len() == 1);
+        assert!(auth_items[0].id == auth.id);
     }
 }

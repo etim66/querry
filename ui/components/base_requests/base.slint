@@ -2,6 +2,7 @@ import { Theme } from "../../theme.slint";
 import { AppConfig } from "../../global.slint";
 import { RequestsFormComponent } from "./requests_form.slint";
 import { HeadersComponent } from "./header.slint";
+import { AuthorizationComponent } from "./authorization.slint";
 
 
 export component BaseRequests inherits Rectangle {
@@ -114,5 +115,8 @@ export component BaseRequests inherits Rectangle {
 
         if (root.active_tab == "Headers"):
             HeadersComponent {vertical-stretch: 1;}
+        
+        if (root.active_tab == "Auth"):
+            AuthorizationComponent {vertical-stretch: 2; height: 100%;}
     }
 }
