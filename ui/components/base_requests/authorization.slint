@@ -17,6 +17,14 @@ export component AuthorizationComponent inherits Rectangle {
         }
     }
 
+    changed authorization => {
+        if authorization.auth-type == "none" {
+            root.authorization_type = "None"
+        } else {
+            root.authorization_type = "Bearer Token"
+        }
+    }
+
     VerticalLayout {
         spacing: 15px;
         VerticalLayout {
@@ -25,14 +33,22 @@ export component AuthorizationComponent inherits Rectangle {
                 height: 40px;
                 padding-left: 15px;
                 width: 100%;
-                Text {
-                    color: Theme.label_text_color;
-                    font-size: Theme.label_font_size_medium_small;
-                    text: "Authorization";
-                    opacity: 0.5;
-    
-                    vertical-alignment: center;
+
+                HorizontalLayout {
+                    width: 100%;
+                    alignment: start;
+                    padding-left: 15px;
+
+                    Text {
+                        color: Theme.label_text_color;
+                        font-size: Theme.label_font_size_medium_small;
+                        text: "Authorization";
+                        opacity: 0.5;
+        
+                        vertical-alignment: center;
+                    }
                 }
+                
             }
     
             Rectangle {
@@ -78,38 +94,49 @@ export component AuthorizationComponent inherits Rectangle {
                     background: Theme.dark_theme ? Theme.app_background_color.darker(-50%) : Theme.app_background_color.darker(50%);
                     border-radius: Theme.border_radius;
 
-                    prefix := TextInput {
-                        width: 100%;
-                        color: Theme.label_text_color;
-                        vertical-alignment: center;
-                        wrap: no-wrap; 
-                        text: authorization.prefix;
-                        font-size: Theme.label_font_size_medium_small;
-                        opacity: Theme.text_opacity;
+                    HorizontalLayout {
+                        alignment: center;
+                        prefix := TextInput {
+                            width: 98%;
+                            color: Theme.label_text_color;
+                            vertical-alignment: center;
+                            wrap: no-wrap; 
+                            text: authorization.prefix;
+                            font-size: Theme.label_font_size_medium_small;
+                            opacity: Theme.text_opacity;
+            
+                            init => {
+                                if (self.text == "" && !self.has-focus) {
+                                    self.text = "Prefix";
+                                    self.opacity = 0.5;
+                                }
+                            }
+                            changed has-focus => {
+                                if self.text == "Prefix" {
+                                    self.text = "";
+                                    self.opacity = Theme.text_opacity;
+                                }
+
+                                if !self.has-focus {
+                                    if self.text == "" {
+                                        self.text = "Prefix";
+                                        self.opacity = 0.5;
+                                    }
+                                }
+                            }
+            
+                            edited => {
+                                if self.text != "Prefix" {
+                                    AppConfig.update_request_auth(request_id, "bearer_token", authorization.token, self.text);
+                                }
+                            }
         
-                        init => {
-                            if (self.text == "" && !self.has-focus) {
-                                self.text = "Prefix";
-                                self.opacity = 0.5;
+                            accepted => {
+                                self.clear-focus()
                             }
-                        }
-                        changed has-focus => {
-                            if self.text == "Prefix" {
-                                self.text = "";
-                                self.opacity = Theme.text_opacity;
-                            }
-                        }
-        
-                        edited => {
-                            if self.text != "Prefix" {
-                                AppConfig.update_request_auth(request_id, "bearer_token", authorization.token, self.text);
-                            }
-                        }
-    
-                        accepted => {
-                            self.clear-focus()
                         }
                     }
+                    
                 }
     
                 Rectangle {
@@ -119,38 +146,49 @@ export component AuthorizationComponent inherits Rectangle {
                     background: Theme.dark_theme ? Theme.app_background_color.darker(-50%) : Theme.app_background_color.darker(50%);
                     border-radius: Theme.border_radius;
 
-                    token := TextInput {
-                        width: 100%;
-                        color: Theme.label_text_color;
-                        vertical-alignment: center;
-                        wrap: no-wrap; 
-                        text: authorization.token;
-                        font-size: Theme.label_font_size_medium_small;
-                        opacity: Theme.text_opacity;
+                    HorizontalLayout {
+                        alignment: center;
+                        token := TextInput {
+                            width: 98%;
+                            color: Theme.label_text_color;
+                            vertical-alignment: center;
+                            wrap: no-wrap; 
+                            text: authorization.token;
+                            font-size: Theme.label_font_size_medium_small;
+                            opacity: Theme.text_opacity;
+            
+                            init => {
+                                if (self.text == "" && !self.has-focus) {
+                                    self.text = "Token";
+                                    self.opacity = 0.5;
+                                }
+                            }
+                            changed has-focus => {
+                                if self.text == "Token" {
+                                    self.text = "";
+                                    self.opacity = Theme.text_opacity;
+                                }
+
+                                if !self.has-focus {
+                                    if self.text == "" {
+                                        self.text = "Token";
+                                        self.opacity = 0.5;
+                                    }
+                                }
+                            }
+            
+                            edited => {
+                                if self.text != "Token" {
+                                    AppConfig.update_request_auth(request_id, "bearer_token", self.text, authorization.prefix);
+                                }
+                            }
         
-                        init => {
-                            if (self.text == "" && !self.has-focus) {
-                                self.text = "Token";
-                                self.opacity = 0.5;
+                            accepted => {
+                                self.clear-focus()
                             }
                         }
-                        changed has-focus => {
-                            if self.text == "Token" {
-                                self.text = "";
-                                self.opacity = Theme.text_opacity;
-                            }
-                        }
-        
-                        edited => {
-                            if self.text != "Token" {
-                                AppConfig.update_request_auth(request_id, "bearer_token", self.text, authorization.prefix);
-                            }
-                        }
-    
-                        accepted => {
-                            self.clear-focus()
-                        }
-                    }    
+                    }
+                        
                 }
             }
             
