@@ -41,8 +41,8 @@ export component SearchForm inherits Rectangle {
                 
                 property <bool> pure: true;
                 property <length> available_width_for_text;
-    
-                edited() => {
+                
+                accepted() => {
                     // Calculate the available width for the text within the HorizontalLayout.
                     // This is the width of the parent (SearchForm) minus the width of the image,
                     // the spacing between the image and text, and any padding.
@@ -59,9 +59,7 @@ export component SearchForm inherits Rectangle {
                         previous_text = text.text;
                         AppConfig.search_collection(text.text);
                     }
-                }
-                
-                accepted() => {
+
                     self.clear-focus();
                 }
             }
