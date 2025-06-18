@@ -10,7 +10,7 @@ description = "Rust request client application that uses the Slint GUI framework
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-slint = "1.11.0"
+slint = "1.12.0"
 tokio = { version = "1.45.0", features = ["full"] }
 sqlx = { version = "0.8", features = [ "runtime-tokio", "tls-rustls-ring-webpki", "sqlite" ] }
 uuid = { version = "1.16.0", features = ["v4"] }
@@ -19,7 +19,7 @@ directories = "5.0"
 rand = "0.9.1"
 
 [build-dependencies]
-slint-build = "1.11.0"
+slint-build = "1.12.0"
 
 [lib]
 name = "lib"
