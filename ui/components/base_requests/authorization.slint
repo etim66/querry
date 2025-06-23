@@ -132,12 +132,29 @@ export component AuthorizationComponent inherits Rectangle {
             
                             edited => {
                                 if self.text != "Prefix" {
-                                    AppConfig.update_request_auth(request_id, "bearer_token", authorization.token, self.text);
+                                    prefix_timer.count = 2;
+                                    prefix_timer.running = true;
                                 }
                             }
         
                             accepted => {
                                 self.clear-focus()
+                            }
+
+                            prefix_timer := Timer {
+                                in-out property <int> count: 2;
+                                interval: 1.5s;
+                                running: false;
+                                triggered() => {
+                                    // Stop timer after 2 ticks
+                                    if count <= 0 {
+                                        self.running = false;
+                                    }
+
+                                    AppConfig.update_request_auth(request_id, "bearer_token", authorization.token, prefix.text);
+                                    debug("Prefix timer running ---", count);
+                                    count -= 1;
+                                }
                             }
                         }
                     }
@@ -184,12 +201,28 @@ export component AuthorizationComponent inherits Rectangle {
             
                             edited => {
                                 if self.text != "Token" {
-                                    AppConfig.update_request_auth(request_id, "bearer_token", self.text, authorization.prefix);
+                                    token_timer.count = 2;
+                                    token_timer.running = true;
                                 }
                             }
         
                             accepted => {
                                 self.clear-focus()
+                            }
+
+                            token_timer := Timer {
+                                in-out property <int> count: 2;
+                                interval: 1.5s;
+                                running: false;
+                                triggered() => {
+                                    // Stop timer after 2 ticks
+                                    if count <= 0 {
+                                        self.running = false;
+                                    }
+
+                                    AppConfig.update_request_auth(request_id, "bearer_token", token.text, authorization.prefix);
+                                    count -= 1;
+                                }
                             }
                         }
                     }

@@ -26,10 +26,6 @@ export component SearchForm inherits Rectangle {
             horizontal-stretch: 1;
             vertical-stretch: 1;
 
-            clicked => {
-                debug("clicked")
-            }
-
             text := TextInput {
                 color: Theme.label_text_color;
                 horizontal-stretch: 1;
@@ -42,7 +38,7 @@ export component SearchForm inherits Rectangle {
                 property <bool> pure: true;
                 property <length> available_width_for_text;
                 
-                accepted() => {
+                edited() => {
                     // Calculate the available width for the text within the HorizontalLayout.
                     // This is the width of the parent (SearchForm) minus the width of the image,
                     // the spacing between the image and text, and any padding.
@@ -56,11 +52,31 @@ export component SearchForm inherits Rectangle {
                         text.text = previous_text;
                     } else {
                         // If no overflow, update previous_text for the next edit.
+                        text_timer.count = 2;
+                        text_timer.running = true;
+                    }
+                }
+
+                accepted => {
+                    self.clear-focus();
+                }
+
+
+                text_timer := Timer {
+                    in-out property <int> count: 2;
+                    interval: 1.5s;
+                    running: false;
+                    triggered() => {
+                        // Stop timer after 2 ticks
+                        if count <= 0 {
+                            self.running = false;
+                        }
+
                         previous_text = text.text;
                         AppConfig.search_collection(text.text);
-                    }
 
-                    self.clear-focus();
+                        count -= 1;
+                    }
                 }
             }
         } 
