@@ -47,20 +47,35 @@ export component RequestsFormComponent inherits HorizontalLayout {
 
                 edited() => {
                     if self.text != "" {
-                        // Call update request callback
-                        AppConfig.update_request_item(
-                            AppConfig.active_selected_request.item.id,
-                            AppConfig.active_selected_request.item.name,
-                            AppConfig.active_selected_request.item.protocol,
-                            AppConfig.active_selected_request.item.http-method,
-                            self.text,
-                        );
-                        
+                        text_timer.count = 2;
+                        text_timer.running = true;
                     }
                 }
                 
                 accepted() => {
                     self.clear-focus();
+                }
+
+                text_timer := Timer {
+                    in-out property <int> count: 2;
+                    interval: 1.5s;
+                    running: false;
+                    triggered() => {
+                        // Stop timer after 2 ticks
+                        if count <= 0 {
+                            self.running = false;
+                        }
+
+                        AppConfig.update_request_item(
+                            AppConfig.active_selected_request.item.id,
+                            AppConfig.active_selected_request.item.name,
+                            AppConfig.active_selected_request.item.protocol,
+                            AppConfig.active_selected_request.item.http-method,
+                            text.text,
+                        );
+
+                        count -= 1;
+                    }
                 }
             }
         }
