@@ -6,7 +6,7 @@ use sqlx::SqlitePool;
 use crate::{app::handlers, database::get_database, AppWindow};
 
 fn platform_error_to_boxed(err: slint::PlatformError) -> Box<dyn Error> {
-    Box::new(io::Error::new(io::ErrorKind::Other, err.to_string()))
+    Box::new(io::Error::other(err.to_string()))
 }
 
 pub async fn run() -> Result<(), Box<dyn Error>> {
