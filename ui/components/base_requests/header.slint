@@ -164,27 +164,30 @@ component TableView inherits Rectangle {
                         Rectangle {
                             border-radius: 2px;
                             background: Theme.dark_theme ? Theme.app_background_color.darker(-50%) : Theme.app_background_color.darker(50%);
-                            padding: 10px;
-
-                            text := TextInput {
-                                color: Theme.label_text_color;
-                                vertical-alignment: center;
-                                wrap: no-wrap; 
-                                text: header.value;
+                            HorizontalLayout {
+                                padding: 10px;
                                 width: 100%;
-                                font-size: Theme.label_font_size_medium_small;
-                                opacity: Theme.text_opacity;
-    
-                                accepted() => {
-                                    AppConfig.update_request_header(
-                                        header.id,
-                                        header.key,
-                                        self.text,
-                                        header.active
-                                    );
-                                    value_edit_mode = !value_edit_mode;
+
+                                text := TextInput {
+                                    color: Theme.label_text_color;
+                                    vertical-alignment: center;
+                                    wrap: no-wrap; 
+                                    text: header.value;
+                                    width: 100%;
+                                    font-size: Theme.label_font_size_medium_small;
+                                    opacity: Theme.text_opacity;
+        
+                                    accepted() => {
+                                        AppConfig.update_request_header(
+                                            header.id,
+                                            header.key,
+                                            self.text,
+                                            header.active
+                                        );
+                                        value_edit_mode = !value_edit_mode;
+                                    }
+        
                                 }
-    
                             }
                             
                         }
