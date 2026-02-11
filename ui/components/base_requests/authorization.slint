@@ -35,7 +35,6 @@ export component AuthorizationComponent inherits Rectangle {
             Rectangle {
                 background: Theme.dark_theme ? Theme.app_background_color.darker(-30%) : Theme.app_background_color.darker(30%);
                 height: 40px;
-                padding-left: 15px;
                 width: 100%;
 
                 HorizontalLayout {
@@ -94,13 +93,13 @@ export component AuthorizationComponent inherits Rectangle {
 
                 Rectangle {
                     width: 100%;
-                    padding: 5px;
                     height: 40px;
                     background: Theme.dark_theme ? Theme.app_background_color.darker(-50%) : Theme.app_background_color.darker(50%);
                     border-radius: Theme.border_radius;
 
                     HorizontalLayout {
                         alignment: center;
+                        padding: 5px;
                         prefix := TextInput {
                             width: 98%;
                             color: Theme.label_text_color;
@@ -163,13 +162,13 @@ export component AuthorizationComponent inherits Rectangle {
     
                 Rectangle {
                     width: 100%;
-                    padding: 5px;
                     height: 40px;
                     background: Theme.dark_theme ? Theme.app_background_color.darker(-50%) : Theme.app_background_color.darker(50%);
                     border-radius: Theme.border_radius;
 
                     HorizontalLayout {
                         alignment: center;
+                        padding: 5px;
                         token := TextInput {
                             width: 98%;
                             color: Theme.label_text_color;

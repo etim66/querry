@@ -7,7 +7,6 @@ import { HeaderItem } from "./header_item.slint";
 
 
 export component HeadersSection inherits Rectangle {
-    padding: 20px;
     border-color: Theme.border_color;
     horizontal-stretch: 1;
     border-width: Theme.border_width;
@@ -60,22 +59,28 @@ export component HeadersSection inherits Rectangle {
         }
     }
 
-    scroll := ScrollView {
-        horizontal-scrollbar-policy: always-off;
-        content_box := HorizontalBox {
-            spacing: 10px;
-            height: 100%;
+    VerticalLayout {
+        padding: 20px;
+        width: 100%;
+        height: 100%;
 
-            for list_item[i] in AppConfig.selected_requests: HeaderItem {
-                collection_icon: list-item.collection_icon;
-                name: list-item.item.name;
-                index: i;
-                id: list-item.item.id;
-                component_background: root.background;
-                collection_index: list-item.collection_index;
+        scroll := ScrollView {
+            horizontal-scrollbar-policy: always-off;
+            content_box := HorizontalBox {
+                spacing: 10px;
+                height: 100%;
 
-                request-focus-parent => {
-                    root.focus();
+                for list_item[i] in AppConfig.selected_requests: HeaderItem {
+                    collection_icon: list-item.collection_icon;
+                    name: list-item.item.name;
+                    index: i;
+                    id: list-item.item.id;
+                    component_background: root.background;
+                    collection_index: list-item.collection_index;
+
+                    request-focus-parent => {
+                        root.focus();
+                    }
                 }
             }
         }

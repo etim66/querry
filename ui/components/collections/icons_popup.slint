@@ -22,8 +22,6 @@ export component IconsPopup inherits Rectangle {
     child := Rectangle {
         width: root.width - 5px;
         height: root.height - 5px;
-        padding-top: 15px;
-        padding-bottom: 15px;
         z: 100;
         clip: true;
 
@@ -37,6 +35,8 @@ export component IconsPopup inherits Rectangle {
 
         VerticalLayout {
             height: 100%;
+            padding-top: 15px;
+            padding-bottom: 15px;
             HorizontalLayout {
                 horizontal-stretch: 1;
 
