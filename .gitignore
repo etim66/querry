@@ -1,3 +1,4 @@
 /target
 venv
 .instruct.txt
+.github/copilot-instructions.md
