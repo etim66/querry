@@ -69,7 +69,12 @@ export component HeaderItem inherits Rectangle {
                     clicked => {
                         AppConfig.remove_selected_request(index);
                         if AppConfig.active_selected_request.item.id == id {
-                            AppConfig.active_selected_request = {};
+                            AppConfig.active_selected_request = {
+                                item: { id: "", name: "", url: "", protocol: "", http_method: "" },
+                                collection_icon: collection_icon,
+                                collection_id: "",
+                                collection_index: -1
+                            };
                             AppConfig.show_request_section = false;
                         }
                     }

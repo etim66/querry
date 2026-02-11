@@ -4,7 +4,7 @@ use slint::{ComponentHandle, Model, VecModel};
 use sqlx::SqlitePool;
 
 use crate::{
-    callbacks::images::load_image_item,
+    app::handlers::images::load_icon,
     utils::crud::collections::{
         create_collection, delete_collection, get_all_collections, search_collections,
         update_collection_item, CollectionData,
@@ -12,14 +12,25 @@ use crate::{
     AppConfig, AppWindow, CollectionItem, SelectedRequestItem,
 };
 
+fn to_collection_item(item: CollectionData) -> Option<CollectionItem> {
+    let icon_item = load_icon(&item.icon).ok()?;
+    Some(CollectionItem {
+        id: item.id.into(),
+        name: item.name.into(),
+        icon: icon_item,
+        icon_name: item.icon.into(),
+        request_count: item.requests_count,
+    })
+}
+
+fn to_collection_items(items: Vec<CollectionData>) -> Vec<CollectionItem> {
+    items.into_iter().filter_map(to_collection_item).collect()
+}
+
 /// Set page to view on app start.
 pub async fn check_startup_page(db: &SqlitePool, app: &AppWindow) -> Result<(), Box<dyn Error>> {
     let collection_items = get_all_collections(db).await?;
-    let mut page: i32 = 1;
-
-    if !collection_items.is_empty() {
-        page = 2;
-    }
+    let page = if collection_items.is_empty() { 1 } else { 2 };
 
     let config = app.global::<AppConfig>();
     config.set_page(page);
@@ -27,26 +38,10 @@ pub async fn check_startup_page(db: &SqlitePool, app: &AppWindow) -> Result<(), 
     Ok(())
 }
 
-/// Create load all collections on app start.
+/// Load all collections on app start.
 pub async fn load_collections(db: &SqlitePool, app: &AppWindow) -> Result<(), Box<dyn Error>> {
     let collection_items = get_all_collections(db).await?;
-
-    let mut collection_data: Vec<CollectionItem> = Vec::new();
-    for collection_item in collection_items {
-        let icon_item = match load_image_item(&collection_item.icon) {
-            Ok(data) => data,
-            Err(_) => {
-                continue;
-            }
-        };
-        collection_data.push(CollectionItem {
-            id: collection_item.id.into(),
-            name: collection_item.name.into(),
-            icon: icon_item,
-            icon_name: collection_item.icon.into(),
-            request_count: collection_item.requests_count,
-        });
-    }
+    let collection_data = to_collection_items(collection_items);
     let items_model = Rc::new(VecModel::from(collection_data));
 
     let config = app.global::<AppConfig>();
@@ -55,8 +50,8 @@ pub async fn load_collections(db: &SqlitePool, app: &AppWindow) -> Result<(), Bo
     Ok(())
 }
 
-/// Change page on ask
-pub async fn process_page_change(app: &AppWindow) -> Result<(), Box<dyn Error>> {
+/// Change page on request.
+pub async fn register_page_change(app: &AppWindow) -> Result<(), Box<dyn Error>> {
     let config = app.global::<AppConfig>();
     let weak_app = app.as_weak();
 
@@ -70,8 +65,8 @@ pub async fn process_page_change(app: &AppWindow) -> Result<(), Box<dyn Error>> 
     Ok(())
 }
 
-/// Get collections
-pub async fn process_get_collections(
+/// Register collection fetch.
+pub async fn register_get_collections(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -91,23 +86,7 @@ pub async fn process_get_collections(
                 Ok(data) => data,
                 Err(_) => [].to_vec(),
             };
-            let mut collection_data: Vec<CollectionItem> = Vec::new();
-
-            for collection_item in collection_items {
-                let icon_item = match load_image_item(&collection_item.icon) {
-                    Ok(data) => data,
-                    Err(_) => {
-                        continue;
-                    }
-                };
-                collection_data.push(CollectionItem {
-                    id: collection_item.id.into(),
-                    name: collection_item.name.into(),
-                    icon: icon_item,
-                    icon_name: collection_item.icon.into(),
-                    request_count: collection_item.requests_count,
-                });
-            }
+            let collection_data = to_collection_items(collection_items);
             let items_model = Rc::new(VecModel::from(collection_data));
 
             cfg.set_collection_items(items_model.clone().into());
@@ -117,8 +96,8 @@ pub async fn process_get_collections(
     Ok(())
 }
 
-/// Create a collection
-pub async fn process_create_collection(
+/// Register collection creation.
+pub async fn register_create_collection(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -138,23 +117,13 @@ pub async fn process_create_collection(
                 match create_collection("New Collection".to_string(), &db_copy_for_task).await {
                     Ok(data) => data,
                     Err(error) => {
-                        eprintln!("Error Creating collection  - {}", error);
+                        eprintln!("Error creating collection - {error}");
                         return;
                     }
                 };
-            let icon_item = match load_image_item(&new_collection.icon) {
-                Ok(data) => data,
-                Err(error) => {
-                    eprintln!("Error loading image  - {}", error);
-                    return;
-                }
-            };
-            let collection_item = CollectionItem {
-                id: new_collection.id.into(),
-                name: new_collection.name.into(),
-                icon: icon_item,
-                icon_name: new_collection.icon.into(),
-                request_count: new_collection.requests_count,
+            let collection_item = match to_collection_item(new_collection) {
+                Some(item) => item,
+                None => return,
             };
 
             let mut items: Vec<CollectionItem> = cfg.get_collection_items().iter().collect();
@@ -165,8 +134,8 @@ pub async fn process_create_collection(
     Ok(())
 }
 
-/// Update a collection
-pub async fn process_update_collection(
+/// Register collection updates.
+pub async fn register_update_collection(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -188,14 +157,14 @@ pub async fn process_update_collection(
                 {
                     Ok(data) => data,
                     Err(error) => {
-                        eprintln!("Error updating collection  - {}", error);
+                        eprintln!("Error updating collection - {error}");
                         return;
                     }
                 };
-            let icon_item = match load_image_item(&new_collection.icon) {
+            let icon_item = match load_icon(&new_collection.icon) {
                 Ok(data) => data,
                 Err(error) => {
-                    eprintln!("Error loading image  - {}", error);
+                    eprintln!("Error loading image - {error}");
                     return;
                 }
             };
@@ -229,8 +198,8 @@ pub async fn process_update_collection(
     Ok(())
 }
 
-/// Update a collection
-pub async fn process_remove_collection(
+/// Register collection removal.
+pub async fn register_remove_collection(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -246,12 +215,9 @@ pub async fn process_remove_collection(
             let app = weak_app_for_task.upgrade().unwrap();
             let cfg = app.global::<AppConfig>();
 
-            match delete_collection(&id, &db_copy_for_task).await {
-                Ok(_) => {}
-                Err(error) => {
-                    eprintln!("Error deleting collection  - {}", error);
-                    return;
-                }
+            if let Err(error) = delete_collection(&id, &db_copy_for_task).await {
+                eprintln!("Error deleting collection - {error}");
+                return;
             };
             let mut items: Vec<CollectionItem> = cfg.get_collection_items().iter().collect();
             if items.get_mut(index as usize).is_some() {
@@ -270,8 +236,8 @@ pub async fn process_remove_collection(
     Ok(())
 }
 
-/// Search collections
-pub async fn process_search_collections(
+/// Register collection search.
+pub async fn register_search_collections(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -296,23 +262,7 @@ pub async fn process_search_collections(
                 }
             };
 
-            let mut collection_data: Vec<CollectionItem> = Vec::new();
-
-            for collection_item in collection_items {
-                let icon_item = match load_image_item(&collection_item.icon) {
-                    Ok(data) => data,
-                    Err(_) => {
-                        continue;
-                    }
-                };
-                collection_data.push(CollectionItem {
-                    id: collection_item.id.into(),
-                    name: collection_item.name.into(),
-                    icon: icon_item,
-                    icon_name: collection_item.icon.into(),
-                    request_count: collection_item.requests_count,
-                });
-            }
+            let collection_data = to_collection_items(collection_items);
             let items_model = Rc::new(VecModel::from(collection_data));
 
             let app = weak_app_for_task.upgrade().unwrap();

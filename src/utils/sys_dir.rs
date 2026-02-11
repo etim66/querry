@@ -10,8 +10,9 @@ use directories::ProjectDirs;
 pub fn get_db_path(is_test: Option<bool>) -> Result<String, Box<dyn Error>> {
     let is_test = is_test.unwrap_or(false);
     let file_path: PathBuf = if is_test {
-        // If it's a test, use a temporary directory
-        std::env::temp_dir().join("querry_test.db")
+        // If it's a test, use a temporary directory with a unique filename
+        let filename = format!("querry_test_{}.db", uuid::Uuid::new_v4());
+        std::env::temp_dir().join(filename)
     } else {
         // For non-test cases, use the user data directory
         let project_dirs = ProjectDirs::from("org", "etim", "querry")
@@ -34,4 +35,27 @@ pub fn get_db_path(is_test: Option<bool>) -> Result<String, Box<dyn Error>> {
         .ok_or("Invalid Unicode in path")?
         .to_string();
     Ok(path_str)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::get_db_path;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_get_db_path_for_tests_creates_file() {
+        let path = get_db_path(Some(true)).expect("Expected test DB path");
+        let path_buf = PathBuf::from(&path);
+
+        assert!(path_buf.exists());
+        assert!(path_buf.is_file());
+    }
+
+    #[test]
+    fn test_get_db_path_for_tests_uses_temp_dir() {
+        let path = get_db_path(Some(true)).expect("Expected test DB path");
+        let path_buf = PathBuf::from(&path);
+
+        assert!(path_buf.starts_with(std::env::temp_dir()));
+    }
 }

@@ -3879,7 +3879,6 @@ name = "querry"
 version = "0.1.0"
 dependencies = [
  "directories",
- "lazy_static",
  "rand 0.10.0",
  "slint",
  "slint-build",

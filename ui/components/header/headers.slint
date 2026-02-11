@@ -71,12 +71,12 @@ export component HeadersSection inherits Rectangle {
                 height: 100%;
 
                 for list_item[i] in AppConfig.selected_requests: HeaderItem {
-                    collection_icon: list-item.collection_icon;
-                    name: list-item.item.name;
+                    collection_icon: list_item.collection_icon;
+                    name: list_item.item.name;
                     index: i;
-                    id: list-item.item.id;
+                    id: list_item.item.id;
                     component_background: root.background;
-                    collection_index: list-item.collection_index;
+                    collection_index: list_item.collection_index;
 
                     request-focus-parent => {
                         root.focus();

@@ -1,6 +1,5 @@
 import { Theme } from "../../theme.slint";
 import { AppConfig } from "../../global.slint";
-import { HorizontalBox } from "std-widgets.slint";
 
 export component RequestsFormComponent inherits HorizontalLayout {
     spacing: 6px;
@@ -26,7 +25,7 @@ export component RequestsFormComponent inherits HorizontalLayout {
             padding-left: 8px;
     
             method := Text {
-                text: AppConfig.active_selected_request.item.http-method.to-uppercase();
+                text: AppConfig.active_selected_request.item.http_method.to-uppercase();
                 color: green;
                 font-size: Theme.label_font_size_medium_small;
                 vertical-alignment: center;
@@ -69,8 +68,8 @@ export component RequestsFormComponent inherits HorizontalLayout {
                             AppConfig.active_selected_request.item.id,
                             AppConfig.active_selected_request.item.name,
                             AppConfig.active_selected_request.item.protocol,
-                            AppConfig.active_selected_request.item.http-method,
-                            text.text,
+                            AppConfig.active_selected_request.item.http_method,
+                            text.text
                         );
 
                         count -= 1;

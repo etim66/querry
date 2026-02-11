@@ -1,8 +1,6 @@
-import { BaseButton } from "./components/shared/buttons.slint";
-import { Theme } from "./theme.slint";
-import { VerticalBox, HorizontalBox } from "std-widgets.slint";
-import { AppConfig } from "./global.slint";
-
+import { BaseButton } from "../components/shared/buttons.slint";
+import { Theme } from "../theme.slint";
+import { AppConfig } from "../global.slint";
 
 component GetStartedButton inherits BaseButton {
     Text {
@@ -12,7 +10,6 @@ component GetStartedButton inherits BaseButton {
     }
 }
 
-
 export component LandingPage inherits Rectangle {
     VerticalLayout {
         padding: 20px;
@@ -20,13 +17,13 @@ export component LandingPage inherits Rectangle {
         height: 100%;
         alignment: center;
         spacing: 20px;
-        
+
         Image {
-            source: @image-url("./icons/launch.svg");
+            source: @image-url("../icons/launch.svg");
             width: 250px;
             height: 250px;
             x: (parent.width - self.width) / 2;
-            opacity: 0.5;         
+            opacity: 0.5;
         }
 
         Text {
@@ -54,14 +51,11 @@ export component LandingPage inherits Rectangle {
 
         GetStartedButton {
             x: ((parent.width - self.width) / 2) + sin(animation-tick() * 360deg / 2000ms) * 4px;
-            
+
             TouchArea {
                 mouse-cursor: self.has-hover ? pointer : default;
                 clicked => { AppConfig.change_page(2); }
             }
         }
     }
-
 }
-
-

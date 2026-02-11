@@ -83,8 +83,8 @@ pub async fn create_collection(
     let mut rng = rng();
     let random_icon = icon_items
         .choose(&mut rng)
-        .map(|s| s.to_string())
-        .unwrap_or("1F4A6.svg".to_string());
+        .cloned()
+        .unwrap_or_else(|| "1F4A6.svg".to_string());
     let collection: CollectionData = query_as(
         "INSERT INTO collectionitem (id, name, icon) VALUES ($1, $2, $3) RETURNING id, name, icon, requests_count",
     )

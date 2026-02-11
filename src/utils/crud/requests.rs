@@ -51,7 +51,7 @@ impl fmt::Display for HTTPMethods {
             HTTPMethods::Post => write!(f, "POST"),
             HTTPMethods::Get => write!(f, "GET"),
             HTTPMethods::Put => write!(f, "PUT"),
-            HTTPMethods::Delete => write!(f, "DEL"),
+            HTTPMethods::Delete => write!(f, "DELETE"),
         }
     }
 }
@@ -62,7 +62,7 @@ impl HTTPMethods {
             "POST" => Some(HTTPMethods::Post),
             "GET" => Some(HTTPMethods::Get),
             "PUT" => Some(HTTPMethods::Put),
-            "DEL" => Some(HTTPMethods::Delete),
+            "DELETE" | "DEL" => Some(HTTPMethods::Delete),
             _ => None,
         }
     }

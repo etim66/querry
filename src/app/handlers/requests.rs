@@ -8,11 +8,30 @@ use crate::{
         create_request, create_request_authorization, create_request_header, delete_request,
         delete_request_header, get_collection_requests, get_request_authorization,
         get_request_headers, update_request_header, update_request_item, AuthorizationTypes,
-        HTTPMethods, ProtocolTypes, RequestAuthorizationData,
+        HTTPMethods, ProtocolTypes, RequestAuthorizationData, RequestData, RequestHeaderData,
     },
     AppConfig, AppWindow, AuthorizationItem, CollectionItem, HeaderItem, RequestItem,
     SelectedRequestItem,
 };
+
+fn to_request_item(item: RequestData) -> RequestItem {
+    RequestItem {
+        id: item.id.into(),
+        name: item.name.into(),
+        url: item.url.unwrap_or_default().into(),
+        protocol: item.protocol.into(),
+        http_method: item.http_method.unwrap_or_else(|| "get".to_string()).into(),
+    }
+}
+
+fn to_header_item(item: RequestHeaderData) -> HeaderItem {
+    HeaderItem {
+        active: item.active == 1,
+        id: item.id.into(),
+        key: item.key.into(),
+        value: item.value.into(),
+    }
+}
 
 impl From<RequestAuthorizationData> for AuthorizationItem {
     fn from(item: RequestAuthorizationData) -> Self {
@@ -25,8 +44,8 @@ impl From<RequestAuthorizationData> for AuthorizationItem {
     }
 }
 
-/// Get requests
-pub async fn process_get_requests(db: &SqlitePool, app: &AppWindow) -> Result<(), Box<dyn Error>> {
+/// Register request fetch.
+pub async fn register_get_requests(db: &SqlitePool, app: &AppWindow) -> Result<(), Box<dyn Error>> {
     let config = app.global::<AppConfig>();
     let weak_app = app.as_weak();
 
@@ -45,16 +64,8 @@ pub async fn process_get_requests(db: &SqlitePool, app: &AppWindow) -> Result<()
                     Err(_) => [].to_vec(),
                 };
 
-            let request_data: Vec<RequestItem> = request_items
-                .into_iter()
-                .map(|item| RequestItem {
-                    id: item.id.into(),
-                    name: item.name.into(),
-                    url: item.url.unwrap_or("".to_string()).into(),
-                    protocol: item.protocol.into(),
-                    http_method: item.http_method.unwrap_or("get".to_string()).into(),
-                })
-                .collect();
+            let request_data: Vec<RequestItem> =
+                request_items.into_iter().map(to_request_item).collect();
 
             let items_model = Rc::new(VecModel::from(request_data));
             cfg.set_active_collection_requests(items_model.clone().into());
@@ -64,7 +75,8 @@ pub async fn process_get_requests(db: &SqlitePool, app: &AppWindow) -> Result<()
     Ok(())
 }
 
-pub async fn process_create_requests(
+/// Register request creation.
+pub async fn register_create_requests(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -90,13 +102,7 @@ pub async fn process_create_requests(
                         }
                     };
 
-                let request_data: RequestItem = RequestItem {
-                    id: request_item.id.into(),
-                    name: request_item.name.into(),
-                    url: request_item.url.unwrap_or("".to_string()).into(),
-                    protocol: request_item.protocol.into(),
-                    http_method: request_item.http_method.unwrap_or("get".to_string()).into(),
-                };
+                let request_data = to_request_item(request_item);
 
                 let mut items: Vec<RequestItem> =
                     cfg.get_active_collection_requests().iter().collect();
@@ -116,7 +122,8 @@ pub async fn process_create_requests(
     Ok(())
 }
 
-pub async fn process_update_request(
+/// Register request updates.
+pub async fn register_update_request(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -148,13 +155,7 @@ pub async fn process_update_request(
                 }
             };
 
-            let request_data: RequestItem = RequestItem {
-                id: request_item.id.into(),
-                name: request_item.name.into(),
-                url: request_item.url.unwrap_or("".to_string()).into(),
-                protocol: request_item.protocol.into(),
-                http_method: request_item.http_method.unwrap_or("get".to_string()).into(),
-            };
+            let request_data = to_request_item(request_item);
 
             let mut items: Vec<RequestItem> = cfg.get_active_collection_requests().iter().collect();
 
@@ -184,7 +185,8 @@ pub async fn process_update_request(
     Ok(())
 }
 
-pub async fn process_delete_request(
+/// Register request removal.
+pub async fn register_delete_request(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -200,12 +202,9 @@ pub async fn process_delete_request(
             let app = weak_app_for_task.upgrade().unwrap();
             let cfg = app.global::<AppConfig>();
 
-            match delete_request(&request_id, &db_copy_for_task).await {
-                Ok(_) => {}
-                Err(error) => {
-                    eprintln!("Error deleting request  - {}", error);
-                    return;
-                }
+            if let Err(error) = delete_request(&request_id, &db_copy_for_task).await {
+                eprintln!("Error deleting request - {error}");
+                return;
             };
 
             let mut items: Vec<RequestItem> = cfg.get_active_collection_requests().iter().collect();
@@ -236,8 +235,8 @@ pub async fn process_delete_request(
     Ok(())
 }
 
-/// Handle when a user clicks on a request
-pub async fn process_request_selection(app: &AppWindow) -> Result<(), Box<dyn Error>> {
+/// Handle when a user clicks on a request.
+pub async fn register_request_selection(app: &AppWindow) -> Result<(), Box<dyn Error>> {
     let config = app.global::<AppConfig>();
     let weak_app = app.as_weak();
 
@@ -254,7 +253,7 @@ pub async fn process_request_selection(app: &AppWindow) -> Result<(), Box<dyn Er
             return;
         };
 
-        // Get request
+        // Get request.
         let active_requests: Vec<RequestItem> =
             cfg.get_active_collection_requests().iter().collect();
         let selected_request = if let Some(request) = active_requests.get(request_index as usize) {
@@ -267,12 +266,9 @@ pub async fn process_request_selection(app: &AppWindow) -> Result<(), Box<dyn Er
         let mut selected_requests: Vec<SelectedRequestItem> =
             cfg.get_selected_requests().iter().collect();
 
-        let mut request_already_selected = false;
-        for request_item in &selected_requests {
-            if request_item.item.id == selected_request.id {
-                request_already_selected = true;
-            }
-        }
+        let request_already_selected = selected_requests
+            .iter()
+            .any(|item| item.item.id == selected_request.id);
 
         let selected_request = SelectedRequestItem {
             item: selected_request.clone(),
@@ -294,8 +290,8 @@ pub async fn process_request_selection(app: &AppWindow) -> Result<(), Box<dyn Er
     Ok(())
 }
 
-/// Handle remove selected request
-pub async fn process_request_remove(app: &AppWindow) -> Result<(), Box<dyn Error>> {
+/// Handle remove selected request.
+pub async fn register_request_remove(app: &AppWindow) -> Result<(), Box<dyn Error>> {
     let config = app.global::<AppConfig>();
     let weak_app = app.as_weak();
 
@@ -320,7 +316,7 @@ pub async fn process_request_remove(app: &AppWindow) -> Result<(), Box<dyn Error
 }
 
 /// Handle setting a selected request as active.
-pub async fn mark_selected_request_active(app: &AppWindow) -> Result<(), Box<dyn Error>> {
+pub async fn register_mark_selected_request_active(app: &AppWindow) -> Result<(), Box<dyn Error>> {
     let config = app.global::<AppConfig>();
     let weak_app = app.as_weak();
 
@@ -328,7 +324,6 @@ pub async fn mark_selected_request_active(app: &AppWindow) -> Result<(), Box<dyn
         let app = weak_app.upgrade().unwrap();
         let cfg = app.global::<AppConfig>();
 
-        // Remove selected request from list.
         let selected_requests: Vec<SelectedRequestItem> =
             cfg.get_selected_requests().iter().collect();
 
@@ -345,8 +340,8 @@ pub async fn mark_selected_request_active(app: &AppWindow) -> Result<(), Box<dyn
     Ok(())
 }
 
-/// Get request headers.
-pub async fn process_get_request_headers(
+/// Register request headers fetch.
+pub async fn register_get_request_headers(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -367,15 +362,7 @@ pub async fn process_get_request_headers(
                 Err(_) => [].to_vec(),
             };
 
-            let new_headers: Vec<HeaderItem> = headers
-                .into_iter()
-                .map(|x| HeaderItem {
-                    active: x.active == 1,
-                    id: x.id.into(),
-                    key: x.key.into(),
-                    value: x.value.into(),
-                })
-                .collect();
+            let new_headers: Vec<HeaderItem> = headers.into_iter().map(to_header_item).collect();
 
             cfg.set_request_item_headers(Rc::new(VecModel::from(new_headers)).into());
         });
@@ -384,8 +371,8 @@ pub async fn process_get_request_headers(
     Ok(())
 }
 
-/// Create request headers.
-pub async fn process_create_request_header(
+/// Register request headers creation.
+pub async fn register_create_request_header(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -407,12 +394,7 @@ pub async fn process_create_request_header(
             };
 
             let mut headers: Vec<HeaderItem> = cfg.get_request_item_headers().iter().collect();
-            headers.push(HeaderItem {
-                active: header.active == 1,
-                id: header.id.into(),
-                key: header.key.into(),
-                value: header.value.into(),
-            });
+            headers.push(to_header_item(header));
 
             cfg.set_request_item_headers(Rc::new(VecModel::from(headers)).into());
         });
@@ -421,8 +403,8 @@ pub async fn process_create_request_header(
     Ok(())
 }
 
-/// Update request headers.
-pub async fn process_update_request_header(
+/// Register request header updates.
+pub async fn register_update_request_header(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -438,10 +420,7 @@ pub async fn process_update_request_header(
             let app = weak_app_for_task.upgrade().unwrap();
             let cfg = app.global::<AppConfig>();
 
-            let mut processed_active = 0;
-            if active {
-                processed_active = 1;
-            }
+            let processed_active = if active { 1 } else { 0 };
 
             let header = match update_request_header(
                 &header_id,
@@ -458,15 +437,7 @@ pub async fn process_update_request_header(
 
             let mut headers: Vec<HeaderItem> = cfg.get_request_item_headers().iter().collect();
             if let Some(index) = headers.iter().position(|item| item.id == header.id) {
-                let _ = std::mem::replace(
-                    &mut headers[index],
-                    HeaderItem {
-                        active: header.active == 1,
-                        id: header.id.into(),
-                        key: header.key.into(),
-                        value: header.value.into(),
-                    },
-                );
+                let _ = std::mem::replace(&mut headers[index], to_header_item(header));
             }
 
             cfg.set_request_item_headers(Rc::new(VecModel::from(headers)).into());
@@ -476,8 +447,8 @@ pub async fn process_update_request_header(
     Ok(())
 }
 
-/// Remove request headers.
-pub async fn process_remove_request_header(
+/// Register request header removal.
+pub async fn register_remove_request_header(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -493,7 +464,7 @@ pub async fn process_remove_request_header(
             let app = weak_app_for_task.upgrade().unwrap();
             let cfg = app.global::<AppConfig>();
 
-            if (delete_request_header(&header_id, &db_copy_for_task).await).is_ok() {};
+            let _ = delete_request_header(&header_id, &db_copy_for_task).await;
 
             let mut headers: Vec<HeaderItem> = cfg.get_request_item_headers().iter().collect();
             headers.retain(|item| item.id != header_id);
@@ -504,8 +475,8 @@ pub async fn process_remove_request_header(
     Ok(())
 }
 
-/// Get request auth.
-pub async fn process_get_request_authorization(
+/// Register request auth fetch.
+pub async fn register_get_request_authorization(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {
@@ -539,8 +510,8 @@ pub async fn process_get_request_authorization(
     Ok(())
 }
 
-/// Get request auth.
-pub async fn process_update_request_authorization(
+/// Register request auth updates.
+pub async fn register_update_request_authorization(
     db: &SqlitePool,
     app: &AppWindow,
 ) -> Result<(), Box<dyn Error>> {

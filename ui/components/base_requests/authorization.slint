@@ -6,11 +6,13 @@ import { AppConfig, AuthorizationItem } from "../../global.slint";
 export component AuthorizationComponent inherits Rectangle {
     background: Theme.app_background_color;
     in-out property <string> request_id: AppConfig.active_selected_request.item.id;
-    in-out property <AuthorizationItem> authorization: AppConfig.request_auth_items[0];
+    in-out property <AuthorizationItem> authorization: AppConfig.request_auth_items.length > 0
+        ? AppConfig.request_auth_items[0]
+        : { id: "", auth_type: "none", token: "", prefix: "" };
     in-out property <string> authorization_type;
 
     init => {
-        if authorization.auth-type == "none" {
+        if authorization.auth_type == "none" {
             root.authorization_type = "None"
         } else {
             root.authorization_type = "Bearer Token"
@@ -20,7 +22,7 @@ export component AuthorizationComponent inherits Rectangle {
     }
 
     changed authorization => {
-        if authorization.auth-type == "none" {
+        if authorization.auth_type == "none" {
             root.authorization_type = "None"
         } else {
             root.authorization_type = "Bearer Token"
@@ -85,7 +87,7 @@ export component AuthorizationComponent inherits Rectangle {
         }
 
 
-        if root.authorization.auth-type == "bearer_token":
+        if root.authorization.auth_type == "bearer_token":
             VerticalLayout {
                 spacing: 15px;
                 padding-left: 10px;

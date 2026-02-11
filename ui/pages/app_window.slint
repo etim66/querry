@@ -1,11 +1,9 @@
-import { Button, VerticalBox } from "std-widgets.slint";
 import { LandingPage } from "./landing_page.slint";
-import { Theme } from "./theme.slint";
-import { AppConfig } from "./global.slint";
-import { MainPage } from "./main.slint";
+import { Theme } from "../theme.slint";
+import { AppConfig } from "../global.slint";
+import { MainPage } from "./main_page.slint";
 
 export { AppConfig }
-
 
 export component AppWindow inherits Window {
     title: "Querry";
@@ -19,5 +17,4 @@ export component AppWindow inherits Window {
 
     if AppConfig.page == 1 : LandingPage {}
     if AppConfig.page == 2 : MainPage {}
-
 }
